@@ -1061,6 +1061,8 @@ function renderOverview(){
 }
 
 function renderWaterfall(){
+  // Guard: Waterfall tab was removed in v9. Bail if DOM not present.
+  if (!document.getElementById('waterfall-main') || !document.getElementById('waterfall-per-wf')) return;
   const m = M(); const wf = m.waterfall; const max = wf.scheduled.total;
   const levels = [
     {label:'Scheduled', sub:'Hours Hugo paid for', key:'scheduled'},
@@ -1735,7 +1737,7 @@ function downloadPayrollCSV(){
 function renderAll(){
   renderHeader();
   renderOverview();
-  renderWaterfall();
+  // renderWaterfall();  // removed in v9 (Waterfall tab/pane gone); keeping fn for reference
   renderEquation();
   renderGastro();
   renderSA();
