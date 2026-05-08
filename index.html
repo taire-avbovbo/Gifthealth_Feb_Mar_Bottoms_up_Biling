@@ -4054,6 +4054,12 @@ if (isPlaceholderConfig()){
       loadStatuses(user);
       applyInvoiceVisibility(user);
       if (window.updateInternalTabVisibility) window.updateInternalTabVisibility();
+      // Patch 5: re-render all charts/tables now that main-app is visible.
+      // Tiny delay lets the browser complete the display:block paint first.
+      setTimeout(function(){
+        if (typeof rerenderAll === 'function') rerenderAll();
+        if (typeof window.renderHeader === 'function') window.renderHeader();
+      }, 80);
     }
 
     function setupPresence(user){
@@ -4282,10 +4288,20 @@ if (isPlaceholderConfig()){
 
   function setCurrentMonth(m){
     const sel = document.getElementById('month-select');
-    if (sel && sel.value !== m){
+    if (!sel) return;
+    // Update the hidden select; v12's change listener updates currentMonth + calls rerenderAll().
+    if (sel.value !== m) {
+      // Ensure the option exists before setting value
+      const opt = Array.from(sel.options).find(o => o.value === m);
+      if (!opt) {
+        console.warn('[bridge] month not found in select:', m, 'available:', Array.from(sel.options).map(o => o.value));
+        return;
+      }
       sel.value = m;
-      // v12's existing change listener calls rerenderAll().
       sel.dispatchEvent(new Event('change'));
+    } else {
+      // Already on this month but still update header + force rerender
+      if (typeof rerenderAll === 'function') rerenderAll();
     }
     renderHeader();
   }
@@ -4412,6 +4428,8 @@ if (isPlaceholderConfig()){
   function initHeaderBridge(){
     bindToMonthSelect();
     renderHeader();
+    // Expose globally so showApp (auth) can call renderHeader after Firebase reveals the app.
+    window.renderHeader = renderHeader;
   }
 
   if (document.readyState === 'loading'){
