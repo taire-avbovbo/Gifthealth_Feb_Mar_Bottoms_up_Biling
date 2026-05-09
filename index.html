@@ -1302,6 +1302,7 @@ let sortStates = {
   action: { col: 'abs_pct', dir: 'desc' },
 };
 let chartInstances = {};
+window.chartInstances = chartInstances;  // expose for post-auth destroy in build_index.py Patch 5
 
 const SITES = ['Hugo: Lagos', 'Hugo: SA', 'Hugo: MO', 'Gastro'];
 const SITE_KEYS = {'Hugo: Lagos': 'lagos', 'Hugo: SA': 'sa', 'Hugo: MO': 'mo', 'Gastro': 'gastro', 'Support': 'support'};
@@ -3934,6 +3935,7 @@ function rerenderAll() {
 initMonthSelector();
 initApproachSelector();
 rerenderAll();
+window.rerenderAll = rerenderAll;  // expose for post-auth re-render in build_index.py Patch 5
 </script>
 </div>
 <script>
@@ -4159,12 +4161,22 @@ if (isPlaceholderConfig()){
       loadStatuses(user);
       applyInvoiceVisibility(user);
       if (window.updateInternalTabVisibility) window.updateInternalTabVisibility();
-      // Patch 5: re-render all charts/tables now that main-app is visible.
-      // Tiny delay lets the browser complete the display:block paint first.
+      // Patch 5 (v13): Destroy stale Chart.js instances and re-render after auth.
+      // Chart.js records 0x0 dimensions on hidden canvases and never recovers
+      // without an explicit destroy() before the next render call.
       setTimeout(function(){
+        try {
+          if (typeof chartInstances !== 'undefined') {
+            Object.values(chartInstances).forEach(function(c){
+              if (c && typeof c.destroy === 'function') c.destroy();
+            });
+            // Reset so renderCharts() recreates them cleanly
+            Object.keys(chartInstances).forEach(function(k){ chartInstances[k] = null; });
+          }
+        } catch(e){ console.warn('[showApp] chart destroy failed:', e); }
         if (typeof rerenderAll === 'function') rerenderAll();
         if (typeof window.renderHeader === 'function') window.renderHeader();
-      }, 80);
+      }, 200);
     }
 
     function setupPresence(user){
