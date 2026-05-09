@@ -4161,22 +4161,6 @@ if (isPlaceholderConfig()){
       loadStatuses(user);
       applyInvoiceVisibility(user);
       if (window.updateInternalTabVisibility) window.updateInternalTabVisibility();
-      // Patch 5 (v13): Destroy stale Chart.js instances and re-render after auth.
-      // Chart.js records 0x0 dimensions on hidden canvases and never recovers
-      // without an explicit destroy() before the next render call.
-      setTimeout(function(){
-        try {
-          if (typeof chartInstances !== 'undefined') {
-            Object.values(chartInstances).forEach(function(c){
-              if (c && typeof c.destroy === 'function') c.destroy();
-            });
-            // Reset so renderCharts() recreates them cleanly
-            Object.keys(chartInstances).forEach(function(k){ chartInstances[k] = null; });
-          }
-        } catch(e){ console.warn('[showApp] chart destroy failed:', e); }
-        if (typeof rerenderAll === 'function') rerenderAll();
-        if (typeof window.renderHeader === 'function') window.renderHeader();
-      }, 200);
     }
 
     function setupPresence(user){
@@ -4545,8 +4529,61 @@ if (isPlaceholderConfig()){
   function initHeaderBridge(){
     bindToMonthSelect();
     renderHeader();
-    // Expose globally so showApp (auth) can call renderHeader after Firebase reveals the app.
+    // Expose globally so any external caller can trigger a header refresh.
     window.renderHeader = renderHeader;
+
+    // ── CORE FIX ──────────────────────────────────────────────────────────────
+    // The v12 dashboard runs rerenderAll() at script-parse time while
+    // #main-app is display:none. Chart.js measures 0×0 canvases and silently
+    // bails. When Firebase calls showApp() and flips display:block, nothing
+    // re-renders unless we force it.
+    //
+    // Strategy: MutationObserver watches #main-app's style attribute.
+    // The instant display changes from none to block, we:
+    //   1. Destroy all stale Chart.js instances (they have 0×0 dimensions)
+    //   2. Wait one rAF so the browser has finished the layout reflow
+    //   3. Call rerenderAll() so every component populates correctly
+    //
+    // This is fully independent of the auth IIFE — no string-patching needed.
+    const mainApp = document.getElementById('main-app');
+    if (!mainApp) return;
+
+    let wasHidden = (mainApp.style.display === 'none' || getComputedStyle(mainApp).display === 'none');
+
+    const observer = new MutationObserver(function() {
+      const isHidden = (mainApp.style.display === 'none' || getComputedStyle(mainApp).display === 'none');
+      if (wasHidden && !isHidden) {
+        // Transition: hidden → visible. Fire re-render.
+        wasHidden = false;
+        observer.disconnect();  // one-shot; don't keep firing
+
+        // Destroy stale Chart.js instances so they'll be recreated with real dimensions.
+        try {
+          if (typeof window.chartInstances !== 'undefined' && window.chartInstances) {
+            Object.values(window.chartInstances).forEach(function(c) {
+              if (c && typeof c.destroy === 'function') c.destroy();
+            });
+            Object.keys(window.chartInstances).forEach(function(k) {
+              window.chartInstances[k] = null;
+            });
+          }
+        } catch(e) { console.warn('[bridge] chart destroy failed:', e); }
+
+        // requestAnimationFrame: fire after the browser has laid out the newly-visible
+        // element, so Chart.js sees real pixel dimensions.
+        requestAnimationFrame(function() {
+          requestAnimationFrame(function() {  // double-rAF ensures paint is complete
+            try {
+              if (typeof window.rerenderAll === 'function') window.rerenderAll();
+              renderHeader();
+            } catch(e) { console.error('[bridge] post-auth rerender failed:', e); }
+          });
+        });
+      }
+      wasHidden = isHidden;
+    });
+
+    observer.observe(mainApp, { attributes: true, attributeFilter: ['style'] });
   }
 
   if (document.readyState === 'loading'){
