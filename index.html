@@ -618,7 +618,11 @@
     border-left: 4px solid;
     border-radius: 0; padding: 14px 16px;
   }
-  /* v12: drop gradients. Site identity carries via the 4px left border + colored site-name only. */
+  /* Collapsible invoice table group rows */
+  .bill-group-row { background: #f8fafc !important; }
+  .bill-group-row:hover { background: #f1f5f9 !important; }
+  .bill-group-row td { border-bottom: 1px solid #d1d5db; }
+  .bill-detail-row td { border-bottom: 1px solid #f3f4f6; background: #fefefe; }
   .insight-card.lagos { border-left-color: #0f766e; }
   .insight-card.sa { border-left-color: #6d28d9; }
   .insight-card.mo { border-left-color: var(--red); }
@@ -2173,64 +2177,115 @@ function renderBillTableOverall(data, wrap) {
   const hasPerRowData = invoiceRows.length > 0 || otherRows.length > 0;
 
   if (hasPerRowData) {
-    // Build rows from invoice sub-rows. Group by section for visual hierarchy.
+    // ── 5 collapsible groups ──────────────────────────────────────────────────
+    // Each group shows aggregated totals; clicking the + reveals detail rows.
+    // Group membership: Lagos/SA/MO = lilly_agent_rows by site.
+    //                   Gastro = other_workflows where site==='Gastro'
+    //                   Other  = remaining other_workflows (Bot, Social, WFM etc)
     const allRows = [...invoiceRows, ...otherRows];
-    const grouped = {};  // site -> [agent_row, tl_row, ...]
-    for (const r of allRows) {
-      const key = r.site || 'Support';
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(r);
+
+    const GROUP_DEFS = [
+      { key: 'lagos', label: 'Lilly Lagos', filter: r => r.site === 'Hugo: Lagos' },
+      { key: 'sa',    label: 'Lilly SA',    filter: r => r.site === 'Hugo: SA' },
+      { key: 'mo',    label: 'Lilly MO',    filter: r => r.site === 'Hugo: MO' },
+      { key: 'gastro',label: 'Gastro',      filter: r => r.site === 'Gastro' },
+      { key: 'other', label: 'Other Workflows',
+        filter: r => !['Hugo: Lagos','Hugo: SA','Hugo: MO','Gastro'].includes(r.site) },
+    ];
+
+    // Pre-compute per-row derived values
+    function deriveRow(r) {
+      const site = r.site || 'Support';
+      const nBill = r.n_billable || 0;
+      const nAct = r.n_actual || 0;
+      const sched = r.sched_hrs || 0;
+      const timeOff = r.time_off || 0;
+      const baseBill = r.amount || 0;
+      const baseRate = r.weekday_rate || r.rate || 0;
+      const days = r.days || null;
+      const hpd = r.hpd || null;
+      const maxBillHrs = nBill && days && hpd ? nBill * days * hpd : 0;
+      const isTL = (r.category === 'tls') || (r.name || '').toLowerCase().includes('team lead');
+      const isAgent = !isTL;
+      const incentiveRate = isAgent ? getIncentiveRate(site, baseRate) : baseRate;
+      const adjustedBill = (isAgent && baseRate) ? baseBill * (incentiveRate / baseRate) : baseBill;
+      return { r, site, nBill, nAct, sched, timeOff, baseBill, baseRate, days, hpd,
+               maxBillHrs, isTL, isAgent, incentiveRate, adjustedBill };
     }
-    const SECTION_ORDER = ['Hugo: Lagos', 'Hugo: SA', 'Hugo: MO', 'Gastro', 'Support'];
-    for (const site of SECTION_ORDER) {
-      const siteRows = grouped[site] || [];
-      if (!siteRows.length) continue;
-      for (const r of siteRows) {
-        const nBill = r.n_billable || 0;
-        const nAct = r.n_actual || 0;
-        const sched = r.sched_hrs || 0;
-        const timeOff = r.time_off || 0;
-        const billable = r.delivered_hrs || (r.amount && r.weekday_rate ? r.amount / r.weekday_rate : 0);
-        const baseBill = r.amount || 0;
-        const baseRate = r.weekday_rate || r.rate || 0;
-        const days = r.days || null;
-        const hpd = r.hpd || null;
-        const maxBillHrs = nBill && days && hpd ? nBill * days * hpd : 0;
 
-        const isTL = (r.category === 'tls') || (r.name || '').toLowerCase().includes('team lead') || (r.name || '').toLowerCase().includes('tls');
-        const isAgent = !isTL;
+    for (const grp of GROUP_DEFS) {
+      const members = allRows.filter(grp.filter).map(deriveRow);
+      if (!members.length) continue;
 
-        // Incentive applies to agent rows only (not TLs)
-        const incentiveRate = isAgent ? getIncentiveRate(site, baseRate) : baseRate;
-        const rateDelta = incentiveRate - baseRate;
-        const adjustedBill = (isAgent && baseRate) ? baseBill * (incentiveRate / baseRate) : baseBill;
-        const billDelta = adjustedBill - baseBill;
+      // Aggregate group totals
+      const g = { nBill:0, nAct:0, sched:0, timeOff:0, billable:0, maxBill:0, base:0, adj:0 };
+      for (const d of members) {
+        g.nBill += d.nBill; g.nAct += d.nAct;
+        g.sched += d.sched; g.timeOff += d.timeOff;
+        g.billable += d.r.delivered_hrs || 0;
+        g.maxBill += d.maxBillHrs;
+        g.base += d.baseBill; g.adj += d.adjustedBill;
+      }
+      const hasIncentive = incentiveApplies && members.some(d => d.isAgent && d.incentiveRate !== d.baseRate);
+      const gDelta = g.adj - g.base;
+      const gDeltaCls = gDelta > 0 ? 'delta-pos' : gDelta < 0 ? 'delta-neg' : '';
+      const gDeltaStr = Math.abs(gDelta) < 1 ? '-' : (gDelta > 0 ? '+' : '') + fmt.money(gDelta);
 
-        totals.nBill += nBill; totals.nAct += nAct;
-        totals.sched += sched; totals.timeOff += timeOff; totals.billable += (r.delivered_hrs || 0);
-        totals.maxBill += maxBillHrs;
-        totals.base += baseBill; totals.adjusted += adjustedBill;
+      // Accumulate into grand totals
+      totals.nBill += g.nBill; totals.nAct += g.nAct;
+      totals.sched += g.sched; totals.timeOff += g.timeOff;
+      totals.billable += g.billable; totals.maxBill += g.maxBill;
+      totals.base += g.base; totals.adjusted += g.adj;
 
-        const label = r.name || site;
+      // ── Group row (always visible, shows aggregates) ──────────────────────
+      rows += `<tr class="bill-group-row" onclick="(function(btn,key){
+        var rows=document.querySelectorAll('.bill-detail-row[data-group=\\''+key+'\\']');
+        var expanded=btn.textContent==='-';
+        btn.textContent=expanded?'+':'-';
+        rows.forEach(function(r){r.style.display=expanded?'none':'table-row';});
+      })(this.querySelector('.expand-btn'),'${grp.key}')" style="cursor:pointer;">
+        <td style="font-weight:700;color:var(--ink);">
+          <button class="expand-btn" style="
+            width:18px;height:18px;border:1px solid #94a3b8;background:#f8fafc;
+            font-size:11px;font-weight:700;cursor:pointer;margin-right:8px;
+            vertical-align:middle;line-height:1;color:#475569;border-radius:2px;
+            flex-shrink:0;">+</button>${grp.label}</td>
+        <td class="num">${g.nBill}</td>
+        <td class="num">${g.nAct}</td>
+        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num">${fmt.int(g.sched)}</td>
+        <td class="num">${g.timeOff ? fmt.int(g.timeOff) : '-'}</td>
+        <td class="num">${fmt.int(g.billable)}</td>
+        <td class="num">${g.maxBill ? fmt.int(g.maxBill) : '-'}</td>
+        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num">${fmt.money(g.base)}</td>
+        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num" style="background:#fffbeb;font-weight:700;">${hasIncentive ? fmt.money(g.adj) : '-'}</td>
+        <td class="num ${gDeltaCls} col-delta">${gDeltaStr}</td>
+      </tr>`;
+
+      // ── Detail rows (hidden by default) ──────────────────────────────────
+      for (const d of members) {
+        const billDelta = d.adjustedBill - d.baseBill;
         const billChangeCls = billDelta > 0 ? 'delta-pos' : billDelta < 0 ? 'delta-neg' : '';
         const billChangeStr = Math.abs(billDelta) < 1 ? '-' : (billDelta > 0 ? '+' : '') + fmt.money(billDelta);
-        const showIncentive = rateDelta !== 0 && isAgent && incentiveApplies;
-
-        rows += `<tr>
-          <td style="padding-left: ${isTL ? '20px' : '12px'}; color: var(--ink-soft); font-weight: ${isTL ? '400' : '600'}; font-style: ${isTL ? 'italic' : 'normal'};">${label}</td>
-          <td class="num">${nBill}</td>
-          <td class="num">${nAct || '-'}</td>
-          <td class="num">${days != null ? days : '<span style="color:var(--muted-soft)">-</span>'}</td>
-          <td class="num">${hpd != null ? hpd : '<span style="color:var(--muted-soft)">-</span>'}</td>
-          <td class="num">${sched ? fmt.int(sched) : '-'}</td>
-          <td class="num">${timeOff ? fmt.int(timeOff) : '-'}</td>
-          <td class="num">${r.delivered_hrs ? fmt.int(r.delivered_hrs) : '-'}</td>
-          <td class="num">${maxBillHrs ? fmt.int(maxBillHrs) : '<span style="color:var(--muted-soft)">-</span>'}</td>
-          <td class="num">$${baseRate.toFixed(2)}</td>
-          <td class="num">${fmt.money(baseBill)}</td>
-          <td class="num">${showIncentive ? '$' + incentiveRate.toFixed(2) : '-'}</td>
-          <td class="num" style="background: #fffbeb; font-weight: 600;">${showIncentive ? fmt.money(adjustedBill) : '-'}</td>
-          <td class="num ${billChangeCls} col-delta" style="font-size: 11px;">${billChangeStr}</td>
+        const showInc = (d.incentiveRate !== d.baseRate) && d.isAgent && incentiveApplies;
+        rows += `<tr class="bill-detail-row" data-group="${grp.key}" style="display:none;">
+          <td style="padding-left:28px;color:var(--ink-soft);font-weight:${d.isTL?'400':'500'};font-style:${d.isTL?'italic':'normal'};font-size:11px;">${d.r.name || d.site}</td>
+          <td class="num" style="font-size:11px;">${d.nBill}</td>
+          <td class="num" style="font-size:11px;">${d.nAct || '-'}</td>
+          <td class="num" style="font-size:11px;">${d.days != null ? d.days : '<span style="color:var(--muted-soft)">-</span>'}</td>
+          <td class="num" style="font-size:11px;">${d.hpd != null ? d.hpd : '<span style="color:var(--muted-soft)">-</span>'}</td>
+          <td class="num" style="font-size:11px;">${d.sched ? fmt.int(d.sched) : '-'}</td>
+          <td class="num" style="font-size:11px;">${d.timeOff ? fmt.int(d.timeOff) : '-'}</td>
+          <td class="num" style="font-size:11px;">${d.r.delivered_hrs ? fmt.int(d.r.delivered_hrs) : '-'}</td>
+          <td class="num" style="font-size:11px;">${d.maxBillHrs ? fmt.int(d.maxBillHrs) : '<span style="color:var(--muted-soft)">-</span>'}</td>
+          <td class="num" style="font-size:11px;">$${d.baseRate.toFixed(2)}</td>
+          <td class="num" style="font-size:11px;">${fmt.money(d.baseBill)}</td>
+          <td class="num" style="font-size:11px;">${showInc ? '$'+d.incentiveRate.toFixed(2) : '-'}</td>
+          <td class="num" style="font-size:11px;background:${showInc?'#fffbeb':'transparent'};font-weight:${showInc?'600':'400'};">${showInc ? fmt.money(d.adjustedBill) : '-'}</td>
+          <td class="num ${billChangeCls} col-delta" style="font-size:11px;">${billChangeStr}</td>
         </tr>`;
       }
     }
