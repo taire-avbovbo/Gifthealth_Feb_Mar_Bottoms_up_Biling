@@ -2231,6 +2231,14 @@ function renderBillTableOverall(data, wrap) {
       const gDeltaCls = gDelta > 0 ? 'delta-pos' : gDelta < 0 ? 'delta-neg' : '';
       const gDeltaStr = Math.abs(gDelta) < 1 ? '-' : (gDelta > 0 ? '+' : '') + fmt.money(gDelta);
 
+      // Group-level days / hpd / rate: show value if uniform across all sub-rows, else '-'
+      const uniqDays = [...new Set(members.map(d => d.days))];
+      const uniqHpd  = [...new Set(members.map(d => d.hpd))];
+      const uniqRate = [...new Set(members.map(d => d.baseRate))];
+      const gDays = uniqDays.length === 1 && uniqDays[0] != null ? uniqDays[0] : null;
+      const gHpd  = uniqHpd.length  === 1 && uniqHpd[0]  != null ? uniqHpd[0]  : null;
+      const gRate = uniqRate.length  === 1 && uniqRate[0]  != null ? '$' + uniqRate[0].toFixed(2) : null;
+
       // Accumulate into grand totals
       totals.nBill += g.nBill; totals.nAct += g.nAct;
       totals.sched += g.sched; totals.timeOff += g.timeOff;
@@ -2252,13 +2260,13 @@ function renderBillTableOverall(data, wrap) {
             flex-shrink:0;">+</button>${grp.label}</td>
         <td class="num">${g.nBill}</td>
         <td class="num">${g.nAct}</td>
-        <td class="num" style="color:var(--muted-soft);">-</td>
-        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num">${gDays != null ? gDays : '<span style="color:var(--muted-soft)">-</span>'}</td>
+        <td class="num">${gHpd  != null ? gHpd  : '<span style="color:var(--muted-soft)">-</span>'}</td>
         <td class="num">${fmt.int(g.sched)}</td>
         <td class="num">${g.timeOff ? fmt.int(g.timeOff) : '-'}</td>
         <td class="num">${fmt.int(g.billable)}</td>
         <td class="num">${g.maxBill ? fmt.int(g.maxBill) : '-'}</td>
-        <td class="num" style="color:var(--muted-soft);">-</td>
+        <td class="num">${gRate != null ? gRate : '<span style="color:var(--muted-soft)">-</span>'}</td>
         <td class="num">${fmt.money(g.base)}</td>
         <td class="num" style="color:var(--muted-soft);">-</td>
         <td class="num" style="background:#fffbeb;font-weight:700;">${hasIncentive ? fmt.money(g.adj) : '-'}</td>
@@ -2272,7 +2280,7 @@ function renderBillTableOverall(data, wrap) {
         const billChangeStr = Math.abs(billDelta) < 1 ? '-' : (billDelta > 0 ? '+' : '') + fmt.money(billDelta);
         const showInc = (d.incentiveRate !== d.baseRate) && d.isAgent && incentiveApplies;
         rows += `<tr class="bill-detail-row" data-group="${grp.key}" style="display:none;">
-          <td style="padding-left:28px;color:var(--ink-soft);font-weight:${d.isTL?'400':'500'};font-style:${d.isTL?'italic':'normal'};font-size:11px;">${d.r.name || d.site}</td>
+          <td style="padding-left:28px;color:var(--ink-soft);font-weight:400;font-size:11px;">${d.r.name || d.site}</td>
           <td class="num" style="font-size:11px;">${d.nBill}</td>
           <td class="num" style="font-size:11px;">${d.nAct || '-'}</td>
           <td class="num" style="font-size:11px;">${d.days != null ? d.days : '<span style="color:var(--muted-soft)">-</span>'}</td>
