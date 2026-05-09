@@ -2169,18 +2169,22 @@ function renderBillTableOverall(data, wrap) {
     ? ['Hugo: Lagos', 'Hugo: SA', 'Hugo: MO', 'Gastro', 'Support']
     : SITES;
 
-  // Variance flag helper (defined at function scope so totals row can use it)
+  // Variance flag - badge only, no arrows. Number shown separately in Variance column.
   function varFlag(billable, contracted) {
     if (!contracted || contracted < 1) return '';
     const diff = contracted - billable;
     const pct  = Math.abs(diff / contracted);
     if (pct < 0.005) {
-      return '<span style="background:#e2e8f0;color:#475569;font-size:9px;font-weight:700;padding:2px 6px;letter-spacing:.04em;">SAME</span>';
+      return '<span style="background:#f1f5f9;color:#475569;font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.04em;display:inline-block;">SAME</span>';
     } else if (diff > 0) {
-      return '<span style="background:#fef3c7;color:#92400e;font-size:9px;font-weight:700;padding:2px 6px;letter-spacing:.04em;">&#9660; BELOW</span>';
+      return '<span style="background:#fee2e2;color:#dc2626;font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.04em;display:inline-block;">BELOW</span>';
     } else {
-      return '<span style="background:#d1fae5;color:#065f46;font-size:9px;font-weight:700;padding:2px 6px;letter-spacing:.04em;">&#9650; ABOVE</span>';
+      return '<span style="background:#dcfce7;color:#16a34a;font-size:9px;font-weight:700;padding:2px 7px;letter-spacing:.04em;display:inline-block;">ABOVE</span>';
     }
+  }
+  function varNum(billable, contracted) {
+    if (!contracted || contracted < 1) return '-';
+    return fmt.int(Math.abs(contracted - billable));
   }
 
   // v13: Build rows from lilly_agent_rows + other_workflows (per Funmi's invoice format).
@@ -2279,7 +2283,7 @@ function renderBillTableOverall(data, wrap) {
                   : (mode(members.map(d => d.baseRate)) != null ? '$' + mode(members.map(d => d.baseRate)).toFixed(2) : null);
       // Group variance flag
       const gVarFlag = varFlag(g.billable, g.maxBill);
-      const gVarHrs  = g.maxBill > 0 ? fmt.int(g.maxBill - g.billable) : '-';
+      const gVarHrs  = varNum(g.billable, g.maxBill);
 
       // Accumulate into grand totals
       totals.nBill += g.nBill; totals.nAct += g.nAct;
@@ -2294,7 +2298,7 @@ function renderBillTableOverall(data, wrap) {
         btn.textContent=expanded?'+':'-';
         drows.forEach(function(r){r.style.display=expanded?'none':'table-row';});
       })(this.querySelector('.expand-btn'),'${grp.key}')" style="cursor:pointer;">
-        <td style="font-weight:700;color:var(--ink);">
+        <td style="font-weight:700;color:var(--ink);white-space:nowrap;">
           <button class="expand-btn" style="width:18px;height:18px;border:1px solid #94a3b8;
             background:#f8fafc;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px;
             vertical-align:middle;line-height:1;color:#475569;border-radius:2px;">+</button>${grp.label}</td>
@@ -2306,7 +2310,8 @@ function renderBillTableOverall(data, wrap) {
         <td class="num">${g.timeOff ? fmt.int(g.timeOff) : '0'}</td>
         <td class="num">${fmt.int(g.billable)}</td>
         <td class="num">${g.maxBill ? fmt.int(g.maxBill) : '-'}</td>
-        <td class="num">${gVarHrs !== '-' ? gVarHrs + ' ' + gVarFlag : '-'}</td>
+        <td class="num">${gVarHrs !== '-' ? gVarHrs : '-'}</td>
+        <td style="text-align:center;">${gVarFlag}</td>
         <td class="num">${gRate != null ? gRate : '<span style="color:var(--muted-soft)">-</span>'}</td>
         <td class="num">${fmt.money(g.base)}</td>
         <td class="num">${hasIncentive ? '' : '<span style="color:var(--muted-soft);font-size:10px;">' + (incentiveApplies && !members.some(d=>d.hasMatrix) ? 'N/A' : 'Same') + '</span>'}</td>
@@ -2320,10 +2325,10 @@ function renderBillTableOverall(data, wrap) {
         const billChangeCls = billDelta > 0 ? 'delta-pos' : billDelta < 0 ? 'delta-neg' : '';
         const billChangeStr = Math.abs(billDelta) < 1 ? '-' : (billDelta > 0 ? '+' : '') + fmt.money(billDelta);
         const showIncBill  = d.isAgent && incentiveApplies && d.incentiveRate !== d.baseRate;
-        const rowVarHrs    = d.maxBillHrs > 0 ? fmt.int(d.maxBillHrs - d.computedBillable) : '-';
+        const rowVarHrs    = varNum(d.computedBillable, d.maxBillHrs);
         const rowVarFlag   = varFlag(d.computedBillable, d.maxBillHrs);
         rows += `<tr class="bill-detail-row" data-group="${grp.key}" style="display:none;">
-          <td style="padding-left:28px;color:var(--ink-soft);font-weight:400;font-size:11px;">${d.r.name || d.site}</td>
+          <td style="padding-left:28px;color:var(--ink-soft);font-weight:400;font-size:11px;white-space:nowrap;">${d.r.name || d.site}</td>
           <td class="num" style="font-size:11px;">${d.nBill}</td>
           <td class="num" style="font-size:11px;">${d.nAct || '-'}</td>
           <td class="num" style="font-size:11px;">${d.days != null ? d.days : '-'}</td>
@@ -2332,7 +2337,8 @@ function renderBillTableOverall(data, wrap) {
           <td class="num" style="font-size:11px;">${d.timeOff ? fmt.int(d.timeOff) : '0'}</td>
           <td class="num" style="font-size:11px;">${fmt.int(d.computedBillable)}</td>
           <td class="num" style="font-size:11px;">${d.maxBillHrs ? fmt.int(d.maxBillHrs) : '-'}</td>
-          <td class="num" style="font-size:11px;">${rowVarHrs !== '-' ? rowVarHrs + ' ' + rowVarFlag : '-'}</td>
+          <td class="num" style="font-size:11px;">${rowVarHrs !== '-' ? rowVarHrs : '-'}</td>
+          <td style="text-align:center;font-size:11px;">${rowVarFlag}</td>
           <td class="num" style="font-size:11px;">$${d.baseRate.toFixed(2)}</td>
           <td class="num" style="font-size:11px;">${fmt.money(d.baseBill)}</td>
           <td class="num" style="font-size:11px;">${incRateLabel(d)}</td>
@@ -2412,7 +2418,8 @@ function renderBillTableOverall(data, wrap) {
     <td class="num">${totals.timeOff ? fmt.int(totals.timeOff) : '0'}</td>
     <td class="num">${fmt.int(totals.billable)}</td>
     <td class="num">${totals.maxBill ? fmt.int(totals.maxBill) : '-'}</td>
-    <td class="num">${totals.maxBill > 0 ? fmt.int(totals.maxBill - totals.billable) + ' ' + varFlag(totals.billable, totals.maxBill) : '-'}</td>
+    <td class="num">${totals.maxBill > 0 ? varNum(totals.billable, totals.maxBill) : '-'}</td>
+    <td style="text-align:center;">${totals.maxBill > 0 ? varFlag(totals.billable, totals.maxBill) : ''}</td>
     <td class="num">-</td>
     <td class="num">${fmt.money(totals.base)}</td>
     <td class="num">-</td>
@@ -2423,10 +2430,10 @@ function renderBillTableOverall(data, wrap) {
   const _incFn = incentiveApplies
     ? ' &nbsp;|&nbsp; <sup>5</sup> Inc bill = Base bill x (Inc rate / Base rate) - scales proportionally across day/weekend/OT mix'
     : '';
-  wrap.innerHTML = `<table class="bill-table">
+  wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="bill-table" style="min-width:1120px;white-space:nowrap;">
     <thead>
       <tr class="invoice-group-row">
-        <th class="single-col">Site</th>
+        <th class="single-col" style="min-width:140px;">Site</th>
         <th class="single-col num"># of Agents</th>
         <th class="single-col num">Actual</th>
         <th class="single-col num"># of days</th>
@@ -2435,7 +2442,8 @@ function renderBillTableOverall(data, wrap) {
         <th class="single-col num">Time off</th>
         <th class="single-col num">Billable hrs <sup title="Delivered hours = Scheduled - Shrinkage (ABS + PTO + LOA)">2</sup></th>
         <th class="single-col num">Contracted</th>
-        <th class="single-col num">Variance <sup title="Contracted hrs - Billable hrs. Above = exceeded contract; Below = under contract.">3</sup></th>
+        <th class="single-col num">Var (hrs) <sup title="|Contracted - Billable hrs|">3</sup></th>
+        <th class="single-col" style="text-align:center;">Status</th>
         <th class="group-base num">Base Rate</th>
         <th class="group-base num">Base Bill <sup title="Billable hrs x Base rate">4</sup></th>
         <th class="group-incentive num">Inc Rate</th>
@@ -2444,11 +2452,11 @@ function renderBillTableOverall(data, wrap) {
       </tr>
     </thead>
     <tbody>${rows}</tbody>
-  </table>
+  </table></div>
   <div style="margin-top:10px;padding:0 4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);line-height:1.8;">
     <sup>1</sup> Sched hrs = n_billable x days x hrs/day &nbsp;|&nbsp;
     <sup>2</sup> Billable hrs = Delivered hrs = Scheduled - Shrinkage (absenteeism + PTO + LOA) &nbsp;|&nbsp;
-    <sup>3</sup> Variance = Contracted - Billable hrs. Above = delivered &gt; contracted; Below = delivered &lt; contracted &nbsp;|&nbsp;
+    <sup>3</sup> Variance = |Contracted - Billable|. Above = delivered &gt; contracted; Below = delivered &lt; contracted &nbsp;|&nbsp;
     <sup>4</sup> Base bill = Billable hrs x Base rate${_incFn}
   </div>
   <div class="callout context" style="margin:8px 0 0;">
@@ -3009,6 +3017,8 @@ function renderSitePane(site) {
   const key = SITE_KEYS[site];
   const cls = key;
   const rollup = data.site_rollups[site];
+  // site_rollup_full has invoice-aligned numbers: sched includes TLs, time_off = ABS+ATO+LOA
+  const rollupFull = data.site_rollup_full && data.site_rollup_full[site];
   const agents = data.agents.filter(a => a.site === site);
   const active = agents.filter(a => a.status === 'Active');
 
@@ -3023,6 +3033,15 @@ function renderSitePane(site) {
   const csatNote = (site === 'Hugo: MO' && avgCsat == null) ? '<span style="color: var(--muted); font-size: 11px;"> (pending)</span>' : '';
   const availabilityHtml = availabilityBreakdownHtml(rollup, site);
 
+  // Use site_rollup_full for invoice-aligned KPIs (matches Summary invoice table)
+  const invSched    = rollupFull ? (rollupFull.sched_hrs    || 0) : (rollup ? rollup.all.sched    : 0);
+  const invTimeOff  = rollupFull ? (rollupFull.time_off     || 0) : (rollup ? rollup.all.absent   : 0);
+  const invDelivered= rollupFull ? (rollupFull.delivered_hrs|| 0) : (rollup ? rollup.all.delivered: 0);
+  const invBill     = rollupFull ? (rollupFull.m2_bill      || 0) : (rollup ? rollup.bill_service_credit : 0);
+  const invRate     = rollupFull ? (rollupFull.rate         || rollup.rate) : (rollup ? rollup.rate : 0);
+  const invAbsPct   = invSched > 0 ? (invTimeOff / invSched * 100) : 0;
+  const invNote     = rollupFull ? '<span style="font-size:10px;color:var(--muted);margin-left:6px;">incl. TLs + ATO/LOA</span>' : '';
+
   const html = `
     <div class="card site-${cls}">
       <div class="site-header">
@@ -3031,12 +3050,12 @@ function renderSitePane(site) {
         <div class="meta-tag">Rate: $${rollup.rate.toFixed(2)} &middot; Active ${active.length} &middot; Total touched ${agents.length}</div>
       </div>
 
-      <div class="kpi-row-label">Hours and bill</div>
+      <div class="kpi-row-label">Hours and bill ${invNote}</div>
       <div class="kpis">
-        <div class="kpi"><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(rollup.all.sched)}</div><div class="delta">${rollup.all.n} agents w/ hours</div></div>
-        <div class="kpi ${rollup.all.abs_pct >= 10 ? 'crisis' : rollup.all.abs_pct >= 6 ? 'warn' : 'ok'}"><div class="lbl">Shrinkage hrs</div><div class="val">${fmt.int(rollup.all.absent)}</div><div class="delta">${fmt.pct1(rollup.all.abs_pct)} of scheduled</div></div>
-        <div class="kpi"><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(rollup.all.delivered)}</div><div class="delta">net of shrinkage allowance</div></div>
-        <div class="kpi"><div class="lbl">Bill</div><div class="val">${fmt.money(rollup.bill_service_credit)}</div><div class="delta">at $${rollup.rate.toFixed(2)}/hr</div></div>
+        <div class="kpi"><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(invSched)}</div><div class="delta">${rollup ? rollup.all.n : 0} agents + TLs</div></div>
+        <div class="kpi ${invAbsPct >= 10 ? 'crisis' : invAbsPct >= 6 ? 'warn' : 'ok'}"><div class="lbl">Time off (shrinkage)</div><div class="val">${fmt.int(invTimeOff)}</div><div class="delta">ABS + PTO + LOA &middot; ${fmt.pct1(invAbsPct)}%</div></div>
+        <div class="kpi"><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(invDelivered)}</div><div class="delta">sched &minus; shrinkage</div></div>
+        <div class="kpi"><div class="lbl">Bill</div><div class="val">${fmt.money(invBill)}</div><div class="delta">at $${invRate.toFixed(2)}/hr</div></div>
       </div>
 
       ${availabilityHtml ? `
