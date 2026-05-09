@@ -2230,7 +2230,12 @@ function renderBillTableOverall(data, wrap) {
       const isTL = (r.category === 'tls') || (r.name || '').toLowerCase().includes('team lead');
       const isAgent = !isTL;
       const hasMatrix = !!(matrices[site]);
-      const incentiveRate    = isAgent ? getIncentiveRate(site, baseRate) : baseRate;
+      // Check Internal tab toggle: if user has explicitly turned off incentive for this
+      // workflow, respect that in the Summary tab too. Default = ON (undefined = not set = ON).
+      const internalToggleState = getInternalState(currentMonth).toggles;
+      const wKey = workflowKey(r);
+      const incentiveOverrideOff = isAgent && internalToggleState[wKey] === false;
+      const incentiveRate    = (isAgent && !incentiveOverrideOff) ? getIncentiveRate(site, baseRate) : baseRate;
       const adjustedBill     = (isAgent && baseRate) ? baseBill * (incentiveRate / baseRate) : baseBill;
       return { r, site, nBill, nAct, sched, timeOff, baseBill, baseRate, days, hpd,
                maxBillHrs, computedBillable, isTL, isAgent, hasMatrix, incentiveRate, adjustedBill };
@@ -3965,7 +3970,9 @@ if (!window._internalToggle) {
     } else if (type === 'cap') {
       state.cap_toggles[k] = el.checked;
     }
+    // Re-render Internal pane (bill assembly) AND Summary invoice table so both stay in sync
     safeRun('internal', renderInternalPane);
+    safeRun('bill-table', renderBillTable);
   };
 }
 
