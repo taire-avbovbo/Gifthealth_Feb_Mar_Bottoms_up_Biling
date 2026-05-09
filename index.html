@@ -621,8 +621,8 @@
   /* Collapsible invoice table group rows */
   .bill-group-row { background: #f8fafc !important; }
   .bill-group-row:hover { background: #f1f5f9 !important; }
-  .bill-group-row td { border-bottom: 1px solid #d1d5db; }
-  .bill-detail-row td { border-bottom: 1px solid #f3f4f6; background: #fefefe; }
+  .bill-group-row td { border-bottom: 1px solid #d1d5db; padding: 8px 5px; }
+  .bill-detail-row td { border-bottom: 1px solid #f3f4f6; background: #fefefe; padding: 6px 5px; }
   .insight-card.lagos { border-left-color: #0f766e; }
   .insight-card.sa { border-left-color: #6d28d9; }
   .insight-card.mo { border-left-color: var(--red); }
@@ -2207,7 +2207,7 @@ function renderBillTableOverall(data, wrap) {
       { key: 'sa',    label: 'Lilly SA',    filter: r => r.site === 'Hugo: SA' },
       { key: 'mo',    label: 'Lilly MO',    filter: r => r.site === 'Hugo: MO' },
       { key: 'gastro',label: 'Gastro',      filter: r => r.site === 'Gastro' },
-      { key: 'other', label: 'Other Workflows',
+      { key: 'other', label: 'Other',
         filter: r => !['Hugo: Lagos','Hugo: SA','Hugo: MO','Gastro'].includes(r.site) },
     ];
 
@@ -2285,7 +2285,14 @@ function renderBillTableOverall(data, wrap) {
       const gVarFlag = varFlag(g.billable, g.maxBill);
       const gVarHrs  = varNum(g.billable, g.maxBill);
 
-      // Accumulate into grand totals
+      // Group Inc Rate: show agent incentive rate if all agents share one rate, else '-'
+      const agentIncRates = members.filter(d => d.isAgent && d.hasMatrix && incentiveApplies)
+                                   .map(d => d.incentiveRate);
+      const uniqIncRates = [...new Set(agentIncRates.map(r => r.toFixed(2)))];
+      const gIncRate = hasIncentive && uniqIncRates.length === 1
+        ? '<span style="color:#0d9488;font-weight:600;">$' + uniqIncRates[0] + '</span>'
+        : hasIncentive ? '<span style="color:var(--muted-soft);font-size:10px;">Mix</span>'
+        : '<span style="color:var(--muted-soft);font-size:10px;">' + (incentiveApplies ? 'N/A' : 'N/A') + '</span>';
       totals.nBill += g.nBill; totals.nAct += g.nAct;
       totals.sched += g.sched; totals.timeOff += g.timeOff;
       totals.billable += g.billable; totals.maxBill += g.maxBill;
@@ -2314,7 +2321,7 @@ function renderBillTableOverall(data, wrap) {
         <td style="text-align:center;">${gVarFlag}</td>
         <td class="num">${gRate != null ? gRate : '<span style="color:var(--muted-soft)">-</span>'}</td>
         <td class="num">${fmt.money(g.base)}</td>
-        <td class="num">${hasIncentive ? '' : '<span style="color:var(--muted-soft);font-size:10px;">' + (incentiveApplies && !members.some(d=>d.hasMatrix) ? 'N/A' : 'Same') + '</span>'}</td>
+        <td class="num">${gIncRate}</td>
         <td class="num" style="background:${hasIncentive?'#fffbeb':'transparent'};font-weight:700;">${hasIncentive ? fmt.money(g.adj) : '-'}</td>
         <td class="num ${gDeltaCls} col-delta">${gDeltaStr}</td>
       </tr>`;
@@ -2430,25 +2437,25 @@ function renderBillTableOverall(data, wrap) {
   const _incFn = incentiveApplies
     ? ' &nbsp;|&nbsp; <sup>5</sup> Inc bill = Base bill x (Inc rate / Base rate) - scales proportionally across day/weekend/OT mix'
     : '';
-  wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="bill-table" style="min-width:1120px;white-space:nowrap;">
+  wrap.innerHTML = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table class="bill-table" style="min-width:960px;white-space:nowrap;font-size:11px;">
     <thead>
       <tr class="invoice-group-row">
-        <th class="single-col" style="min-width:140px;">Site</th>
-        <th class="single-col num"># of Agents</th>
-        <th class="single-col num">Actual</th>
-        <th class="single-col num"># of days</th>
-        <th class="single-col num">Hrs/day</th>
-        <th class="single-col num">Sched hrs <sup title="Contracted schedule hours for all billable agents">1</sup></th>
-        <th class="single-col num">Time off</th>
-        <th class="single-col num">Billable hrs <sup title="Delivered hours = Scheduled - Shrinkage (ABS + PTO + LOA)">2</sup></th>
-        <th class="single-col num">Contracted</th>
-        <th class="single-col num">Var (hrs) <sup title="|Contracted - Billable hrs|">3</sup></th>
-        <th class="single-col" style="text-align:center;">Status</th>
-        <th class="group-base num">Base Rate</th>
-        <th class="group-base num">Base Bill <sup title="Billable hrs x Base rate">4</sup></th>
-        <th class="group-incentive num">Inc Rate</th>
-        <th class="group-incentive num">Inc Bill</th>
-        <th class="single-col col-delta">&Delta;</th>
+        <th class="single-col" style="min-width:110px;padding:8px 6px;">Site</th>
+        <th class="single-col num" style="padding:8px 4px;">#</th>
+        <th class="single-col num" style="padding:8px 4px;">Act.</th>
+        <th class="single-col num" style="padding:8px 4px;">Days</th>
+        <th class="single-col num" style="padding:8px 4px;">Hrs</th>
+        <th class="single-col num" style="padding:8px 6px;">Sched <sup>1</sup></th>
+        <th class="single-col num" style="padding:8px 6px;">Off</th>
+        <th class="single-col num" style="padding:8px 6px;">Billable <sup>2</sup></th>
+        <th class="single-col num" style="padding:8px 6px;">Contract</th>
+        <th class="single-col num" style="padding:8px 4px;">Var <sup>3</sup></th>
+        <th class="single-col" style="text-align:center;padding:8px 4px;">Status</th>
+        <th class="group-base num" style="padding:8px 6px;">Rate</th>
+        <th class="group-base num" style="padding:8px 6px;">Base Bill <sup>4</sup></th>
+        <th class="group-incentive num" style="padding:8px 6px;">Inc Rate</th>
+        <th class="group-incentive num" style="padding:8px 6px;">Inc Bill</th>
+        <th class="single-col col-delta" style="padding:8px 4px;">&Delta;</th>
       </tr>
     </thead>
     <tbody>${rows}</tbody>
@@ -3939,22 +3946,23 @@ function renderBillAssembly(month, state, allRows) {
   `;
   document.getElementById('internal-totals-grid').innerHTML = totalsHtml;
 
-  // Bind incentive toggle checkboxes
-  document.querySelectorAll('.incentive-toggle').forEach(cb => {
-    cb.addEventListener('change', (e) => {
+  // Use event delegation on the stable tbody element.
+  // This survives innerHTML replacement and avoids double-binding bugs.
+  if (!tbody._delegationBound) {
+    tbody._delegationBound = true;
+    tbody.addEventListener('change', function(e) {
       const k = e.target.dataset.key;
-      getInternalState(currentMonth).toggles[k] = e.target.checked;
-      renderInternalPane();
+      if (!k) return;
+      if (e.target.classList.contains('incentive-toggle')) {
+        getInternalState(currentMonth).toggles[k] = e.target.checked;
+        safeRun('internal', renderInternalPane);
+      }
+      if (e.target.classList.contains('cap-toggle')) {
+        getInternalState(currentMonth).cap_toggles[k] = e.target.checked;
+        safeRun('internal', renderInternalPane);
+      }
     });
-  });
-  // Bind cap toggle checkboxes (Phase 4 v9)
-  document.querySelectorAll('.cap-toggle').forEach(cb => {
-    cb.addEventListener('change', (e) => {
-      const k = e.target.dataset.key;
-      getInternalState(currentMonth).cap_toggles[k] = e.target.checked;
-      renderInternalPane();
-    });
-  });
+  }
 }
 
 function rerenderAll() {
