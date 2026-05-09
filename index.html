@@ -841,6 +841,13 @@
 </head>
 <body>
 
+<!-- Dummy elements for original auth IIFE compatibility -->
+<div id="main-app" style="display:none;position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true"></div>
+<div id="auth-screen" style="display:none;"></div>
+<div id="reset-screen" style="display:none;"></div>
+<div id="pending-screen" style="display:none;"></div>
+
+
 <!-- ═══ AUTH OVERLAY (covers dashboard until login resolves) ═══ -->
 <div id="auth-overlay">
   <!-- Login panel (default) -->
@@ -4369,97 +4376,81 @@ if (isPlaceholderConfig()){
 })();
 </script>
 <script>
-// ═══ OVERLAY OVERRIDES (v14) ═══
-// Replace the auth IIFE's show*/hide* functions to use #auth-overlay instead
-// of display:none on #main-app. Dashboard is always visible (charts render
-// normally). Overlay just covers it.
-
+// ═══ OVERLAY OVERRIDES v14 ═══
+// The original auth IIFE controls #main-app (display:none → block on login).
+// We watch that transition to hide our overlay and show the user bar.
 (function(){
-  function showOverlayPanel(panelId) {
-    var ov = document.getElementById('auth-overlay');
-    if (ov) ov.classList.remove('hidden');
-    ['login-panel','reset-panel','pending-panel'].forEach(function(id) {
-      var el = document.getElementById(id);
-      if (el) el.style.display = (id === panelId) ? 'block' : 'none';
+  var overlay  = document.getElementById('auth-overlay');
+  var loginPnl = document.getElementById('login-panel');
+  var resetPnl = document.getElementById('reset-panel');
+  var pendPnl  = document.getElementById('pending-panel');
+  var authScr  = document.getElementById('auth-screen');   // IIFE's login screen
+  var resetScr = document.getElementById('reset-screen');  // IIFE's reset screen
+  var pendScr  = document.getElementById('pending-screen');// IIFE's pending screen
+  var mainApp  = document.getElementById('main-app');      // IIFE flips this on login
+  var userBar  = document.getElementById('user-bar');
+
+  function showPanel(id) {
+    [loginPnl, resetPnl, pendPnl].forEach(function(p) {
+      if (p) p.style.display = (p.id === id) ? 'block' : 'none';
     });
-    var ub = document.getElementById('user-bar');
-    if (ub) ub.classList.remove('show');
+    if (overlay) overlay.classList.remove('hidden');
   }
 
-  function hideOverlay(email, isAdmin) {
-    var ov = document.getElementById('auth-overlay');
-    if (ov) ov.classList.add('hidden');
-    var ub = document.getElementById('user-bar');
-    if (ub) ub.classList.add('show');
-    var ev = document.getElementById('u-email-val');
-    if (ev) ev.textContent = email;
-    var ab = document.getElementById('u-admin-btn');
-    if (ab) ab.style.display = isAdmin ? 'inline-block' : 'none';
-    if (isAdmin) {
-      var ap = document.getElementById('admin-panel');
-      if (ap) ap.classList.add('show');
-    }
-    // Update header bridge
+  function onLoginSuccess() {
+    if (overlay) overlay.classList.add('hidden');
+    if (userBar) userBar.classList.add('show');
     if (typeof window.renderHeader === 'function') window.renderHeader();
   }
 
-  // Poll for the auth IIFE to finish wiring, then replace showLogin/showApp/showPending
-  function patchAuthFns() {
-    // The auth IIFE exposes nothing directly, so we intercept via Firebase's own
-    // onAuthStateChanged result by wrapping the global auth state.
-    // Instead, we use a simpler approach: override by observing #auth-overlay state.
+  // Watch the IIFE's auth-screen: becomes visible → show our login panel
+  if (authScr) new MutationObserver(function() {
+    if (authScr.classList.contains('show')) showPanel('login-panel');
+  }).observe(authScr, {attributes:true, attributeFilter:['class']});
 
-    // Show login overlay by default until Firebase resolves
-    showOverlayPanel('login-panel');
+  // Watch reset-screen
+  if (resetScr) new MutationObserver(function() {
+    if (resetScr.classList.contains('show')) showPanel('reset-panel');
+  }).observe(resetScr, {attributes:true, attributeFilter:['class']});
 
-    // Watch for auth screen changes driven by the IIFE
-    // The IIFE's showLogin() sets auth-screen.classList.add('show')
-    // We translate those to overlay changes instead.
-    var authScr = document.getElementById('auth-screen');
-    var resetScr = document.getElementById('reset-screen');
-    var pendingScr = document.getElementById('pending-screen');
-    var mainApp = document.getElementById('main-app');  // may not exist in overlay build
+  // Watch pending-screen
+  if (pendScr) new MutationObserver(function() {
+    if (pendScr.classList.contains('show')) {
+      var pdEmail = document.getElementById('pending-email-display');
+      var pdSrc   = document.querySelector('#pending-screen .pending-email');
+      if (pdEmail && pdSrc) pdEmail.textContent = pdSrc.textContent;
+      showPanel('pending-panel');
+    }
+  }).observe(pendScr, {attributes:true, attributeFilter:['class']});
 
-    if (authScr) {
-      new MutationObserver(function() {
-        if (authScr.classList.contains('show')) showOverlayPanel('login-panel');
-      }).observe(authScr, {attributes: true, attributeFilter: ['class']});
+  // ★ KEY: Watch #main-app. The IIFE sets style.display='block' on successful login.
+  //   That's our signal to hide the overlay and reveal the dashboard.
+  if (mainApp) new MutationObserver(function() {
+    if (mainApp.style.display !== 'none' && mainApp.style.display !== '') {
+      // Also update user bar email from IIFE's element if present
+      var ubarOrig = document.querySelector('.user-bar #u-email-val');
+      var ubarOvly = document.getElementById('u-email-val');
+      if (ubarOrig && ubarOvly) ubarOvly.textContent = ubarOrig.textContent;
+      var adminBtnOrig = document.querySelector('.user-bar #u-admin-btn');
+      var adminBtnOvly = document.getElementById('u-admin-btn');
+      if (adminBtnOrig && adminBtnOvly) adminBtnOvly.style.display = adminBtnOrig.style.display;
+      onLoginSuccess();
     }
-    if (resetScr) {
-      new MutationObserver(function() {
-        if (resetScr.classList.contains('show')) showOverlayPanel('reset-panel');
-      }).observe(resetScr, {attributes: true, attributeFilter: ['class']});
-    }
-    if (pendingScr) {
-      new MutationObserver(function() {
-        if (pendingScr.classList.contains('show')) {
-          document.getElementById('pending-email-display').textContent =
-            document.getElementById('pending-email-display') ? '' : '';
-          showOverlayPanel('pending-panel');
-        }
-      }).observe(pendingScr, {attributes: true, attributeFilter: ['class']});
-    }
-    if (mainApp) {
-      // If original auth shows #main-app, hide our overlay too
-      new MutationObserver(function() {
-        var style = mainApp.style.display;
-        if (style && style !== 'none') {
-          var user = window._currentAuthUser;
-          var isAdm = user && typeof window._isAdmin === 'function' && window._isAdmin(user.email);
-          hideOverlay(user ? user.email : '', isAdm);
-        }
-      }).observe(mainApp, {attributes: true, attributeFilter: ['style']});
-    }
-  }
+  }).observe(mainApp, {attributes:true, attributeFilter:['style']});
 
-  // Also expose signOut so the user bar button works
-  document.addEventListener('DOMContentLoaded', function() {
-    patchAuthFns();
-    // renderHeader once DOM is ready
-    setTimeout(function(){
-      if (typeof window.renderHeader === 'function') window.renderHeader();
-    }, 300);
-  });
+  // Polling fallback - catches any path where MutationObserver misses the transition
+  var _loginDone = false;
+  function _origOnLoginSuccess() { if (!_loginDone) { _loginDone = true; onLoginSuccess(); } }
+  var pollTimer = setInterval(function() {
+    if (mainApp && mainApp.style.display !== 'none' && mainApp.style.display !== '') {
+      clearInterval(pollTimer);
+      _origOnLoginSuccess();
+    }
+  }, 150);
+  setTimeout(function() { clearInterval(pollTimer); }, 300000);
+
+  // Start with login panel visible
+  showPanel('login-panel');
 })();
 </script>
 
