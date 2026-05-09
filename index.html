@@ -1440,18 +1440,22 @@ function updateSortHeaders(scope, state) {
 }
 
 // ============== TAB HANDLING ==============
+// Use #tabs (works for both standalone <nav class="tabs" id="tabs"> and
+// integrated <div class="tabbar" id="tabs">).
 document.querySelectorAll('#tabs button').forEach(btn => {
   btn.addEventListener('click', () => {
     document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+    const pane = document.getElementById('pane-' + btn.dataset.tab);
+    if (pane) pane.classList.add('active');
   });
 });
 
 // ============== MONTH SELECTOR ==============
 function initMonthSelector() {
   const sel = document.getElementById('month-select');
+  if (!sel) return;  // integrated builds hide the select; bridge JS handles month switching
   BUNDLE.available_months.forEach(m => {
     const opt = document.createElement('option');
     opt.value = m;
@@ -1486,10 +1490,12 @@ function applyTabVisibility() {
   });
   // If currently-active tab is hidden, switch to summary
   if (!activeStillVisible) {
-    document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
-    document.querySelector('button[data-tab="summary"]').classList.add('active');
-    document.getElementById('pane-summary').classList.add('active');
+    const summaryBtn = document.querySelector('button[data-tab="summary"]');
+    if (summaryBtn) summaryBtn.classList.add('active');
+    const summaryPane = document.getElementById('pane-summary');
+    if (summaryPane) summaryPane.classList.add('active');
   }
 }
 
