@@ -840,6 +840,9 @@
   .body,.hdr,.tabbar{padding-left:14px;padding-right:14px;}
 .tab.tab-readfirst{color:#c49b20;font-weight:700;}
 .tab.tab-readfirst.act{color:#111;border-bottom-color:#c49b20;}
+.tab.active{color:#111;border-bottom-color:#111;background:#fff;}
+.tab.tab-internal.active{color:#78350f;background:#fef3c7;border-bottom-color:#d97706;}
+
 header.title-block { display: none !important; }
 
 </style>
@@ -961,13 +964,12 @@ header.title-block { display: none !important; }
       <span class="hdr-tag">HUGO TECHNOLOGIES</span>
       <div class="hdr-title">GiftHealth Billing Portal <span style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;">v4 unified</span></div>
 <div class="tabbar" id="tabs">
-  <button class="tab act tab-readfirst" data-tab="summary">&#9733; Read First</button>
   <button class="tab active" data-tab="summary">Billing Summary</button>
-  <button class="tab group-divider" data-tab="gastro">Gastro</button>
+  <button class="tab" data-tab="gastro">Gastro</button>
   <button class="tab" data-tab="sa">Lilly SA</button>
   <button class="tab" data-tab="lagos">Lilly Lagos</button>
   <button class="tab" data-tab="mo">Lilly MO</button>
-  <button class="tab group-divider" data-tab="action">Action Required</button>
+  <button class="tab" data-tab="action">Action Required</button>
   <button class="tab" data-tab="outliers">Outliers &amp; Insights</button>
   <button class="tab tab-internal" data-tab="internal" id="tab-internal-btn" style="display:none;">&#128274; Internal</button>
 </div>
@@ -1586,13 +1588,16 @@ function renderMeta() {
   // per-site tabs (which still count active agents, not the broader rollup).
   for (const site of SITES) {
     const k = SITE_KEYS[site];
-    document.getElementById('pill-' + k).textContent = data.site_rollups[site].all.n;
+    const el = document.getElementById('pill-' + k);
+    if (el) el.textContent = data.site_rollups[site].all.n;
   }
   const actionN = data.agents.filter(a =>
     ['Manage Out', 'Exit Candidate', 'PIP Review', 'Probation'].includes(a.final_status)
   ).length;
-  document.getElementById('pill-action').textContent = actionN;
-  document.getElementById('pill-outliers').textContent = data.outliers.length;
+  const pillAction = document.getElementById('pill-action');
+  if (pillAction) pillAction.textContent = actionN;
+  const pillOutliers = document.getElementById('pill-outliers');
+  if (pillOutliers) pillOutliers.textContent = data.outliers.length;
 }
 
 // ============== SUMMARY: SCENARIOS ==============
