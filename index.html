@@ -960,29 +960,16 @@ header.title-block { display: none !important; }
     <div>
       <span class="hdr-tag">HUGO TECHNOLOGIES</span>
       <div class="hdr-title">GiftHealth Billing Portal <span style="font-size:11px;color:#aaa;font-family:'DM Mono',monospace;">v4 unified</span></div>
-      <div class="hdr-sub" id="period-sub">Loading...</div>
-    </div>
-    <div class="hdr-logo">Hugo</div>
-  </div>
-  <div class="month-bar">
-    <button class="month-pill act" data-month="feb" onclick="switchMonth('feb', this)">FEB 2026 <span class="stat">20 days</span> <span class="status-badge invoiced">INVOICED</span></button>
-    <button class="month-pill" data-month="mar" onclick="switchMonth('mar', this)">MAR 2026 <span class="stat">22 days</span> <span class="status-badge pending">PENDING</span></button>
-  </div>
-  <div class="hdr-stats" id="top-stats"></div>
-</div>
-
-<div class="tabbar">
-  <button class="tab act tab-readfirst" onclick="switchTab('readfirst', this)">★ Read First</button>
-  <button class="tab" onclick="switchTab('equation', this)">Billing Summary</button>
-  <button class="tab group-divider" onclick="switchTab('gastro', this)">Gastro</button>
-  <button class="tab" onclick="switchTab('sa', this)">Lilly SA</button>
-  <button class="tab" onclick="switchTab('lagos', this)">Lilly Lagos</button>
-  <button class="tab" onclick="switchTab('mo', this)">Lilly MO</button>
-  <button class="tab group-divider" onclick="switchTab('agents', this)">All Agents</button>
-  <button class="tab" onclick="switchTab('flags', this)">Flags</button>
-  <button class="tab" onclick="switchTab('calendar', this)">Calendar</button>
-  <button class="tab" onclick="switchTab('defs', this)">Definitions</button>
-  <button class="tab tab-internal" id="tab-internal-btn" onclick="switchTab('internal', this)" style="display:none;">🔒 Internal</button>
+<div class="tabbar" id="tabs">
+  <button class="tab act tab-readfirst" data-tab="summary">&#9733; Read First</button>
+  <button class="tab active" data-tab="summary">Billing Summary</button>
+  <button class="tab group-divider" data-tab="gastro">Gastro</button>
+  <button class="tab" data-tab="sa">Lilly SA</button>
+  <button class="tab" data-tab="lagos">Lilly Lagos</button>
+  <button class="tab" data-tab="mo">Lilly MO</button>
+  <button class="tab group-divider" data-tab="action">Action Required</button>
+  <button class="tab" data-tab="outliers">Outliers &amp; Insights</button>
+  <button class="tab tab-internal" data-tab="internal" id="tab-internal-btn" style="display:none;">&#128274; Internal</button>
 </div>
 
 
@@ -1444,9 +1431,9 @@ function updateSortHeaders(scope, state) {
 // ============== TAB HANDLING ==============
 // Use #tabs (works for both standalone <nav class="tabs" id="tabs"> and
 // integrated <div class="tabbar" id="tabs">).
-document.querySelectorAll('#tabs button, .tabbar button').forEach(btn => {
+document.querySelectorAll('#tabs button').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('#tabs button, .tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     const pane = document.getElementById('pane-' + btn.dataset.tab);
@@ -1492,7 +1479,7 @@ function applyTabVisibility() {
   });
   // If currently-active tab is hidden, switch to summary
   if (!activeStillVisible) {
-    document.querySelectorAll('#tabs button, .tabbar button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.pane').forEach(p => p.classList.remove('active'));
     const summaryBtn = document.querySelector('button[data-tab="summary"]');
     if (summaryBtn) summaryBtn.classList.add('active');
