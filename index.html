@@ -618,11 +618,76 @@
     border-left: 4px solid;
     border-radius: 0; padding: 14px 16px;
   }
-  /* Collapsible invoice table group rows */
+  /* ── COMMENT SYSTEM ─────────────────────────────────────────── */
+  .cmnt-btn {
+    display: inline-flex; align-items: center; gap: 3px;
+    padding: 2px 6px; border: 1px solid #cbd5e1; background: #f8fafc;
+    border-radius: 10px; font-size: 9px; font-family: 'DM Mono', monospace;
+    font-weight: 600; color: #64748b; cursor: pointer;
+    transition: all .15s; white-space: nowrap; vertical-align: middle;
+    line-height: 1.4; opacity: 0; pointer-events: none;
+  }
+  .cmnt-btn.has-comments {
+    opacity: 1 !important; pointer-events: auto !important;
+    border-color: #3b82f6; background: #eff6ff; color: #2563eb;
+  }
+  .cmnt-btn .cmnt-count { font-size: 9px; font-weight: 700; }
+  tr:hover .cmnt-btn, .kpi:hover .cmnt-btn, .card:hover .cmnt-btn { opacity: 1; pointer-events: auto; }
+
+  /* Side panel */
+  #cmnt-panel {
+    position: fixed; top: 0; right: -420px; width: 400px; height: 100vh;
+    background: #fff; border-left: 1px solid #e2e8f0;
+    box-shadow: -4px 0 24px rgba(0,0,0,.08);
+    z-index: 800; display: flex; flex-direction: column;
+    transition: right .25s ease; font-family: 'DM Sans', sans-serif;
+  }
+  #cmnt-panel.open { right: 0; }
+  #cmnt-panel-head {
+    padding: 16px 18px 12px; border-bottom: 1px solid #e2e8f0;
+    display: flex; justify-content: space-between; align-items: flex-start; flex-shrink: 0;
+  }
+  #cmnt-panel-head h3 { margin: 0; font-size: 13px; font-weight: 700; color: #0f172a; }
+  #cmnt-panel-head .cmnt-ctx { font-size: 10px; color: #94a3b8; margin-top: 2px; font-family: 'DM Mono', monospace; }
+  #cmnt-close { background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 18px; padding: 0 0 0 8px; line-height: 1; }
+  #cmnt-close:hover { color: #475569; }
+  #cmnt-tabs { display: flex; border-bottom: 1px solid #e2e8f0; flex-shrink: 0; }
+  .cmnt-tab { flex: 1; padding: 8px 0; font-size: 10px; font-family: 'DM Mono', monospace;
+    font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+    background: none; border: none; cursor: pointer; color: #94a3b8;
+    border-bottom: 2px solid transparent; }
+  .cmnt-tab.active { color: #0f172a; border-bottom-color: #0f172a; }
+  #cmnt-thread { flex: 1; overflow-y: auto; padding: 12px 16px; }
+  .cmnt-empty { text-align: center; color: #94a3b8; font-size: 12px; padding: 32px 0; }
+  .cmnt-item { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #f1f5f9; }
+  .cmnt-item:last-child { border-bottom: none; }
+  .cmnt-item-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .cmnt-author { font-size: 11px; font-weight: 700; color: #1e293b; }
+  .cmnt-time { font-size: 9px; color: #94a3b8; font-family: 'DM Mono', monospace; }
+  .cmnt-text { font-size: 12px; color: #374151; line-height: 1.55; }
+  .cmnt-element-badge { font-size: 9px; font-family: 'DM Mono', monospace; color: #64748b;
+    background: #f1f5f9; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px; display: inline-block; }
+  #cmnt-filter-bar { padding: 8px 16px; border-bottom: 1px solid #f1f5f9; flex-shrink: 0; display: none; }
+  #cmnt-filter-bar select { width: 100%; padding: 5px 8px; font-size: 11px; font-family: 'DM Mono', monospace;
+    border: 1px solid #e2e8f0; background: #f8fafc; color: #374151; cursor: pointer; }
+  #cmnt-compose { padding: 12px 16px; border-top: 1px solid #e2e8f0; flex-shrink: 0; background: #fafafa; }
+  #cmnt-compose textarea { width: 100%; min-height: 72px; padding: 8px 10px; font-size: 12px;
+    font-family: 'DM Sans', sans-serif; border: 1px solid #e2e8f0; resize: vertical;
+    background: #fff; color: #1e293b; box-sizing: border-box; outline: none; }
+  #cmnt-compose textarea:focus { border-color: #3b82f6; }
+  #cmnt-compose-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  #cmnt-author-label { font-size: 10px; color: #94a3b8; font-family: 'DM Mono', monospace; }
+  #cmnt-submit { padding: 6px 16px; background: #0f172a; color: #fff; border: none;
+    font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+  #cmnt-submit:hover { background: #1e293b; }
+  #cmnt-submit:disabled { background: #94a3b8; cursor: default; }
+  #cmnt-panel-overlay { position: fixed; inset: 0; z-index: 799; display: none; }
+  #cmnt-panel-overlay.open { display: block; }
   .bill-group-row { background: #f8fafc !important; }
   .bill-group-row:hover { background: #f1f5f9 !important; }
   .bill-group-row td { border-bottom: 1px solid #d1d5db; padding: 8px 5px; }
   .bill-detail-row td { border-bottom: 1px solid #f3f4f6; background: #fefefe; padding: 6px 5px; }
+  .bill-detail-row.bill-subrow td { background: #f1f5f9 !important; border-bottom: 1px solid #e2e8f0; padding: 8px 14px 12px 48px; }
   .insight-card.lagos { border-left-color: #0f766e; }
   .insight-card.sa { border-left-color: #6d28d9; }
   .insight-card.mo { border-left-color: var(--red); }
@@ -1818,23 +1883,61 @@ function renderInvoiceIntro() {
     }
   }
 
-  // Compute incentive-adjusted total via matrices
+  // Compute incentive-adjusted total - must match renderBillTableOverall logic exactly.
+  // Uses per-row weekday/weekend hours + rates, and respects Internal tab toggles.
   const matrices = (typeof BUNDLE !== 'undefined' && BUNDLE.incentive_matrices) || {};
   const incentiveActiveFrom = (typeof BUNDLE !== 'undefined' && BUNDLE.incentive_active_from) || '2026-04';
   const incentiveApplies = currentMonth >= incentiveActiveFrom;
   const monthlyPerf = data.monthly_perf || {};
 
-  if (incentiveApplies && rollupFull) {
+  function getIncentiveRateForSite(site, baseRate) {
+    if (!incentiveApplies) return baseRate;
+    const matrix = matrices[site];
+    if (!matrix) return baseRate;
+    const sp = monthlyPerf[site];
+    if (!sp || sp.adherence == null || sp.csat == null) return baseRate;
+    const ci = (matrix.csat_bands || []).findIndex(b => sp.csat >= b[0] && sp.csat < b[1]);
+    const ai = (matrix.adh_bands || []).findIndex(b => sp.adherence >= b[0] && sp.adherence < b[1]);
+    if (ci < 0 || ai < 0) return baseRate;
+    return matrix.matrix[ci][ai];
+  }
+
+  // Walk lilly_agent_rows + other_workflows the same way renderBillTableOverall does,
+  // applying WD/WE split rates AND respecting per-row Internal toggles.
+  const internalToggleState = getInternalState(currentMonth).toggles;
+  const allRows = [...(data.lilly_agent_rows || []), ...(data.other_workflows || [])];
+  let computedTotalBase = 0, computedTotalAdjusted = 0;
+
+  if (allRows.length) {
+    for (const r of allRows) {
+      const site     = r.site || 'Support';
+      const wdHrs    = r.weekday_hrs || 0;
+      const weHrs    = r.weekend_hrs || 0;
+      const baseRate = r.weekday_rate || r.rate || 0;
+      const baseWeRate = r.weekend_rate || (baseRate * 1.2);
+      const isTL     = (r.category === 'tls') || (r.name || '').toLowerCase().includes('team lead');
+      const isAgent  = !isTL;
+      const hasWESplit = (wdHrs > 0 || weHrs > 0);
+      const baseBill = hasWESplit ? (wdHrs * baseRate + weHrs * baseWeRate) : (r.amount || 0);
+      computedTotalBase += baseBill;
+      const wKey = workflowKey(r);
+      const toggleOff = isAgent && internalToggleState[wKey] === false;
+      const incRate = (isAgent && !toggleOff) ? getIncentiveRateForSite(site, baseRate) : baseRate;
+      const wdUplift = incRate - baseRate;
+      const incWeRate = baseWeRate + wdUplift;
+      const adjBill = (isAgent && hasWESplit)
+        ? (wdHrs * incRate + weHrs * incWeRate)
+        : (isAgent && baseRate ? baseBill * (incRate / baseRate) : baseBill);
+      computedTotalAdjusted += adjBill;
+    }
+    // Use the computed totals when we have per-row data
+    totalBase = computedTotalBase;
+    totalAdjusted = computedTotalAdjusted;
+  } else if (incentiveApplies && rollupFull) {
+    // Fallback for months without per-row data
     for (const site of Object.keys(rollupFull)) {
       const r = rollupFull[site];
-      const matrix = matrices[site];
-      const sp = monthlyPerf[site];
-      let rate = r.rate;
-      if (matrix && sp && sp.adherence != null && sp.csat != null) {
-        const ci = (matrix.csat_bands || []).findIndex(b => sp.csat >= b[0] && sp.csat < b[1]);
-        const ai = (matrix.adh_bands || []).findIndex(b => sp.adherence >= b[0] && sp.adherence < b[1]);
-        if (ci >= 0 && ai >= 0) rate = matrix.matrix[ci][ai];
-      }
+      const rate = getIncentiveRateForSite(site, r.rate);
       const adjusted = r.rate ? (r.m2_bill * (rate / r.rate)) : r.m2_bill;
       totalAdjusted += adjusted;
     }
@@ -2149,10 +2252,10 @@ function renderSummaryKPIs() {
   const blendedRate = totalDelivered ? (totalBill / totalDelivered) : 0;
 
   hoursWrap.innerHTML = `
-    <div class="kpi"><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(totalSched)}</div><div class="delta">${totalAgents} agents w/ hours</div></div>
-    <div class="kpi ${absPct != null && absPct >= 10 ? 'crisis' : absPct != null && absPct >= 6 ? 'warn' : 'ok'}"><div class="lbl">Time off (shrinkage)</div><div class="val">${hasRaw ? fmt.int(totalAbs) : '-'} <span style="font-size: 13px; color: ${absPct != null && absPct >= 10 ? '#991b1b' : absPct != null && absPct >= 6 ? '#92400e' : '#065f46'}; font-weight: 600;">${absPct != null ? '(' + fmt.pct1(absPct) + ')' : ''}</span></div><div class="delta">ABS + PTO + LOA</div></div>
-    <div class="kpi"><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(totalDelivered)} <span style="font-size: 13px; color: var(--muted); font-weight: 500;">${totalSched ? '(' + (totalDelivered / totalSched * 100).toFixed(1) + '%)' : ''}</span></div><div class="delta">${totalSched ? fmt.pct1(totalDelivered/totalSched*100) + ' of scheduled' : 'net of shrinkage allowance'}</div></div>
-    <div class="kpi"><div class="lbl">Bill</div><div class="val">${fmt.money(totalBill)}</div><div class="delta">blended ${blendedRate ? '$' + blendedRate.toFixed(2) + '/hr' : '-'}</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-sched" onclick="window._cmnt.open('kpi-sched','Scheduled Hours')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(totalSched)}</div><div class="delta">${totalAgents} agents w/ hours</div></div>
+    <div class="kpi ${absPct != null && absPct >= 10 ? 'crisis' : absPct != null && absPct >= 6 ? 'warn' : 'ok'}" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-timeoff" onclick="window._cmnt.open('kpi-timeoff','Time Off (Shrinkage)')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Time off (shrinkage)</div><div class="val">${hasRaw ? fmt.int(totalAbs) : '-'} <span style="font-size: 13px; color: ${absPct != null && absPct >= 10 ? '#991b1b' : absPct != null && absPct >= 6 ? '#92400e' : '#065f46'}; font-weight: 600;">${absPct != null ? '(' + fmt.pct1(absPct) + ')' : ''}</span></div><div class="delta">ABS + PTO + LOA</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-delivered" onclick="window._cmnt.open('kpi-delivered','Delivered Hours')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(totalDelivered)} <span style="font-size: 13px; color: var(--muted); font-weight: 500;">${totalSched ? '(' + (totalDelivered / totalSched * 100).toFixed(1) + '%)' : ''}</span></div><div class="delta">${totalSched ? fmt.pct1(totalDelivered/totalSched*100) + ' of scheduled' : 'net of shrinkage allowance'}</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-bill" onclick="window._cmnt.open('kpi-bill','Invoice Bill')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Bill</div><div class="val">${fmt.money(totalBill)}</div><div class="delta">blended ${blendedRate ? '$' + blendedRate.toFixed(2) + '/hr' : '-'}</div></div>
   `;
 
   // Performance (weighted by site agent count for Lilly + Gastro sites)
@@ -2199,8 +2302,7 @@ function renderSummaryKPIs() {
 // scenarios cards above, not this table.
 function renderBillTable() {
   const data = getData();
-  const wrap = document.getElementById('bill-table-wrap');
-  renderBillTableOverall(data, wrap);
+  const wrap = document.getElementById('bill-table-wrap');  renderBillTableOverall(data, wrap);
 }
 
 function renderBillTableOverall(data, wrap) {
@@ -2282,27 +2384,41 @@ function renderBillTableOverall(data, wrap) {
       const nAct    = r.n_actual   || 0;
       const sched   = r.sched_hrs  || 0;
       const timeOff = r.time_off   || 0;
-      const baseBill  = r.amount   || 0;
-      const baseRate  = r.weekday_rate || r.rate || 0;
+      const baseRate     = r.weekday_rate || r.rate || 0;
+      const baseWeRate   = r.weekend_rate || (baseRate * 1.2);
+      const wdHrs        = r.weekday_hrs || 0;
+      const weHrs        = r.weekend_hrs || 0;
       const days    = r.days || null;
       const hpd     = r.hpd  || null;
       const maxBillHrs = nBill && days && hpd ? nBill * days * hpd : 0;
-      // Billable = delivered if available, else Scheduled - Time Off (sched - shrinkage)
+      // Billable = delivered if available, else Scheduled - Time Off
       const computedBillable = (r.delivered_hrs != null && r.delivered_hrs > 0)
         ? r.delivered_hrs
         : Math.max(0, sched - timeOff);
       const isTL = (r.category === 'tls') || (r.name || '').toLowerCase().includes('team lead');
       const isAgent = !isTL;
       const hasMatrix = !!(matrices[site]);
-      // Check Internal tab toggle: if user has explicitly turned off incentive for this
-      // workflow, respect that in the Summary tab too. Default = ON (undefined = not set = ON).
+      // Base bill = WD hrs × WD base rate + WE hrs × WE base rate
+      // (rebuild it from rates+hrs so we have consistent math, but fall back to r.amount if WD/WE missing)
+      const computedBaseBill = (wdHrs > 0 || weHrs > 0)
+        ? (wdHrs * baseRate + weHrs * baseWeRate)
+        : (r.amount || 0);
+      const baseBill = computedBaseBill;
+      // Check Internal tab toggle: respect user's choice
       const internalToggleState = getInternalState(currentMonth).toggles;
       const wKey = workflowKey(r);
       const incentiveOverrideOff = isAgent && internalToggleState[wKey] === false;
+      // Incentive rate for weekday (from matrix) and weekend (= base + same uplift as weekday)
       const incentiveRate    = (isAgent && !incentiveOverrideOff) ? getIncentiveRate(site, baseRate) : baseRate;
-      const adjustedBill     = (isAgent && baseRate) ? baseBill * (incentiveRate / baseRate) : baseBill;
-      return { r, site, nBill, nAct, sched, timeOff, baseBill, baseRate, days, hpd,
-               maxBillHrs, computedBillable, isTL, isAgent, hasMatrix, incentiveRate, adjustedBill };
+      const wdUplift         = incentiveRate - baseRate;
+      const incentiveWeRate  = baseWeRate + wdUplift;
+      // Adjusted bill = WD hrs × incentive WD rate + WE hrs × incentive WE rate
+      const adjustedBill     = (isAgent && (wdHrs > 0 || weHrs > 0))
+        ? (wdHrs * incentiveRate + weHrs * incentiveWeRate)
+        : (isAgent && baseRate ? baseBill * (incentiveRate / baseRate) : baseBill);
+      return { r, site, nBill, nAct, sched, timeOff, baseBill, baseRate, baseWeRate,
+               wdHrs, weHrs, days, hpd, maxBillHrs, computedBillable, isTL, isAgent,
+               hasMatrix, incentiveRate, incentiveWeRate, adjustedBill };
     }
 
     // Mode helper (most common value) - used for group summary of mixed groups
@@ -2377,7 +2493,10 @@ function renderBillTableOverall(data, wrap) {
         <td style="font-weight:700;color:var(--ink);white-space:nowrap;">
           <button class="expand-btn" style="width:18px;height:18px;border:1px solid #94a3b8;
             background:#f8fafc;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px;
-            vertical-align:middle;line-height:1;color:#475569;border-radius:2px;">+</button>${grp.label}</td>
+            vertical-align:middle;line-height:1;color:#475569;border-radius:2px;">+</button>${grp.label}
+          <button class="cmnt-btn" data-cmnt-key="invoice-${grp.key}" title="Comments on ${grp.label}"
+            onclick="event.stopPropagation();window._cmnt.open('invoice-${grp.key}','${grp.label} - Invoice')"
+            style="margin-left:8px;">&#128172; <span class="cmnt-count">?</span></button></td>
         <td class="num">${g.nBill}</td>
         <td class="num">${g.nAct}</td>
         <td class="num">${gDays != null ? gDays : '<span style="color:var(--muted-soft)">-</span>'}</td>
@@ -2403,6 +2522,24 @@ function renderBillTableOverall(data, wrap) {
         const showIncBill  = d.isAgent && incentiveApplies && d.incentiveRate !== d.baseRate;
         const rowVarHrs    = varNum(d.computedBillable, d.maxBillHrs);
         const rowVarFlag   = varFlag(d.computedBillable, d.maxBillHrs);
+        // Rate cell: show WD / WE base rates stacked
+        const hasWESplit = (d.wdHrs > 0 || d.weHrs > 0) && d.baseWeRate;
+        const rateCellHtml = hasWESplit
+          ? `<div style="line-height:1.2;"><div>$${d.baseRate.toFixed(2)}<span style="color:var(--muted-soft);font-size:9px;"> WD</span></div><div style="color:var(--muted-soft);font-size:10px;">$${d.baseWeRate.toFixed(2)} WE</div></div>`
+          : `$${d.baseRate.toFixed(2)}`;
+        // Inc rate cell: show WD / WE incentive rates stacked
+        let incRateCellHtml;
+        if (!incentiveApplies || !d.hasMatrix) {
+          incRateCellHtml = '<span style="color:var(--muted-soft);font-size:10px;">N/A</span>';
+        } else if (d.isTL) {
+          incRateCellHtml = '<span style="color:var(--muted-soft);font-size:10px;">Same</span>';
+        } else if (d.incentiveRate === d.baseRate) {
+          incRateCellHtml = '<span style="color:var(--muted-soft);font-size:10px;">Same</span>';
+        } else if (hasWESplit) {
+          incRateCellHtml = `<div style="line-height:1.2;"><div style="color:#0d9488;font-weight:600;">$${d.incentiveRate.toFixed(2)}<span style="color:#94a3b8;font-size:9px;font-weight:400;"> WD</span></div><div style="color:#0d9488;font-size:10px;">$${d.incentiveWeRate.toFixed(2)} WE</div></div>`;
+        } else {
+          incRateCellHtml = `<span style="color:#0d9488;font-weight:600;">$${d.incentiveRate.toFixed(2)}</span>`;
+        }
         rows += `<tr class="bill-detail-row" data-group="${grp.key}" style="display:none;">
           <td style="padding-left:28px;color:var(--ink-soft);font-weight:400;font-size:11px;white-space:nowrap;">${d.r.name || d.site}</td>
           <td class="num" style="font-size:11px;">${d.nBill}</td>
@@ -2415,12 +2552,29 @@ function renderBillTableOverall(data, wrap) {
           <td class="num" style="font-size:11px;">${d.maxBillHrs ? fmt.int(d.maxBillHrs) : '-'}</td>
           <td class="num" style="font-size:11px;">${rowVarHrs !== '-' ? rowVarHrs : '-'}</td>
           <td style="text-align:center;font-size:11px;">${rowVarFlag}</td>
-          <td class="num" style="font-size:11px;">$${d.baseRate.toFixed(2)}</td>
+          <td class="num" style="font-size:11px;">${rateCellHtml}</td>
           <td class="num" style="font-size:11px;">${fmt.money(d.baseBill)}</td>
-          <td class="num" style="font-size:11px;">${incRateLabel(d)}</td>
+          <td class="num" style="font-size:11px;">${incRateCellHtml}</td>
           <td class="num" style="font-size:11px;background:${showIncBill?'#fffbeb':'transparent'};font-weight:${showIncBill?'600':'400'};">${showIncBill ? fmt.money(d.adjustedBill) : '-'}</td>
           <td class="num ${billChangeCls} col-delta" style="font-size:11px;">${billChangeStr}</td>
         </tr>`;
+        // Sub-row: WD/WE hours + bill breakdown (only when we have the split)
+        if (hasWESplit && d.isAgent) {
+          const wdBaseBill = d.wdHrs * d.baseRate;
+          const weBaseBill = d.weHrs * d.baseWeRate;
+          const wdIncBill  = d.wdHrs * d.incentiveRate;
+          const weIncBill  = d.weHrs * d.incentiveWeRate;
+          rows += `<tr class="bill-detail-row bill-subrow" data-group="${grp.key}" style="display:none;">
+            <td colspan="16" style="padding:8px 14px 12px 48px;font-size:10px;color:#475569;background:#f1f5f9 !important;border-left:3px solid #94a3b8;">
+              <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 16px;align-items:start;">
+                <div style="font-family:'DM Mono',monospace;color:#475569;letter-spacing:.06em;font-weight:700;font-size:9px;">WEEKDAY</div>
+                <div style="font-size:11px;">${fmt.int(d.wdHrs)} hrs @ $${d.baseRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${fmt.money(wdBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${fmt.money(wdIncBill)}</span>` : ''}</div>
+                <div style="font-family:'DM Mono',monospace;color:#475569;letter-spacing:.06em;font-weight:700;font-size:9px;">WEEKEND (1.2&times;)</div>
+                <div style="font-size:11px;">${fmt.int(d.weHrs)} hrs @ $${d.baseWeRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${fmt.money(weBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveWeRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${fmt.money(weIncBill)}</span>` : ''}</div>
+              </div>
+            </td>
+          </tr>`;
+        }
       }
     }
   } else {
@@ -2534,9 +2688,10 @@ function renderBillTableOverall(data, wrap) {
       <div style="font-family:'DM Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Column definitions</div>
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:#64748b;line-height:1.9;">
         <sup>1</sup> <strong>Sched</strong> = n_billable &times; days &times; hrs/day<br>
-        <sup>2</sup> <strong>Billable</strong> = Sched &minus; Shrinkage (ABS + approved PTO + LOA)<br>
+        <sup>2</sup> <strong>Billable</strong> = Sched &minus; Shrinkage (ABS + approved PTO + LOA). Split into WD (weekday) and WE (weekend) hours<br>
         <sup>3</sup> <strong>Var</strong> = |Contract &minus; Billable|. Above = delivered &gt; contract; Below = under<br>
-        <sup>4</sup> <strong>Base bill</strong> = Billable &times; Base rate${_incFn ? '<br><sup>5</sup> <strong>Inc bill</strong> = Base bill &times; (Inc rate / Base rate)' : ''}
+        <sup>4</sup> <strong>Base bill</strong> = (WD hrs &times; WD rate) + (WE hrs &times; WE rate). WE rate = WD rate &times; 1.2${_incFn ? '<br><sup>5</sup> <strong>Inc bill</strong> = (WD hrs &times; WD inc rate) + (WE hrs &times; WE inc rate). WE inc rate = WE base + WD uplift (Lagos +$2, SA +$1 at top tier)' : ''}<br>
+        <span style="color:#94a3b8;">Expand any Lilly agent row to see WD/WE breakdown.</span>
       </div>
     </div>
     <div class="callout decision" style="margin:0;border-radius:2px;">
@@ -4034,9 +4189,16 @@ if (!window._internalToggle) {
     } else if (type === 'cap') {
       state.cap_toggles[k] = el.checked;
     }
-    // Re-render Internal pane (bill assembly) AND Summary invoice table so both stay in sync
+    // Re-render every UI surface that depends on incentive state.
     safeRun('internal', renderInternalPane);
     safeRun('bill-table', renderBillTable);
+    safeRun('summary-kpis', renderSummaryKPIs);
+    safeRun('invoice-intro', renderInvoiceIntro);
+    safeRun('charts', renderCharts);
+    // Header KPI strip is driven by the bridge in build_index_minimal.py - call its hook if present
+    if (typeof window.renderHeader === 'function') {
+      try { window.renderHeader(); } catch(e) {}
+    }
   };
 }
 
@@ -4066,6 +4228,304 @@ initApproachSelector();
 rerenderAll();
 window.rerenderAll = rerenderAll;  // expose for post-auth re-render in build_index.py Patch 5
 </script>
+<!-- ═══ COMMENT SYSTEM PANEL ═══ -->
+<div id="cmnt-panel-overlay" onclick="window._cmnt.close()"></div>
+<div id="cmnt-panel">
+  <div id="cmnt-panel-head">
+    <div>
+      <h3 id="cmnt-panel-title">Comments</h3>
+      <div class="cmnt-ctx" id="cmnt-panel-ctx"></div>
+    </div>
+    <button id="cmnt-close" onclick="window._cmnt.close()">&#10005;</button>
+  </div>
+  <div id="cmnt-tabs">
+    <button class="cmnt-tab active" id="cmnt-tab-thread" onclick="window._cmnt.showTab('thread')">This element</button>
+    <button class="cmnt-tab" id="cmnt-tab-all" onclick="window._cmnt.showTab('all')">All comments</button>
+  </div>
+  <div id="cmnt-filter-bar">
+    <select id="cmnt-filter-person" onchange="window._cmnt.applyFilter()">
+      <option value="">All people</option>
+    </select>
+  </div>
+  <div id="cmnt-thread"></div>
+  <div id="cmnt-compose">
+    <textarea id="cmnt-text" placeholder="Ask a question or leave a note…"></textarea>
+    <div id="cmnt-compose-foot">
+      <span id="cmnt-author-label">Posting as <strong id="cmnt-author-display">-</strong></span>
+      <button id="cmnt-submit" onclick="window._cmnt.submit()">Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ COMMENT ENGINE ═══ */
+window._cmnt = (function(){
+  'use strict';
+
+  // ── Storage (localStorage by default; Firestore patch applied by build_index.py) ──
+  var STORE_KEY = 'gh_billing_comments_v1';
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY) || '[]'); } catch(e) { return []; }
+  }
+  function saveAll(arr) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(arr)); } catch(e) {}
+  }
+
+  // Public override hooks so Firestore patch can replace storage
+  var _load = function(cb) { cb(loadAll()); };
+  var _save = function(comment, cb) {
+    var arr = loadAll();
+    arr.push(comment);
+    saveAll(arr);
+    if (cb) cb();
+  };
+  var _listen = function(cb) {};  // no-op for localStorage; Firestore overrides with realtime
+
+  // ── State ──
+  var _currentKey   = null;
+  var _currentLabel = null;
+  var _currentTab   = 'thread';
+  var _authorName   = '';
+
+  function getAuthor() {
+    // Overridden by Firestore patch when user is signed in
+    if (window._cmntAuthorOverride) return window._cmntAuthorOverride;
+    if (!_authorName) {
+      _authorName = localStorage.getItem('gh_cmnt_author') || '';
+      if (!_authorName) {
+        _authorName = prompt('Your name (for comments):') || 'Anonymous';
+        localStorage.setItem('gh_cmnt_author', _authorName);
+      }
+    }
+    return _authorName;
+  }
+
+  function shortName(email) {
+    if (!email) return 'Unknown';
+    // taire.avbovbo@hugotech.co → Taire A.
+    var local = email.split('@')[0];
+    var parts = local.split('.');
+    if (parts.length >= 2) {
+      return parts[0].charAt(0).toUpperCase() + parts[0].slice(1) + ' ' + parts[1].charAt(0).toUpperCase() + '.';
+    }
+    return local;
+  }
+
+  function fmtTime(iso) {
+    try {
+      var d = new Date(iso);
+      var now = new Date();
+      var diffMs = now - d;
+      var diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return 'just now';
+      if (diffMins < 60) return diffMins + 'm ago';
+      var diffHrs = Math.floor(diffMins / 60);
+      if (diffHrs < 24) return diffHrs + 'h ago';
+      var diffDays = Math.floor(diffHrs / 24);
+      if (diffDays < 7) return diffDays + 'd ago';
+      return d.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+    } catch(e) { return ''; }
+  }
+
+  function genId() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  }
+
+  // ── Panel open/close ──
+  function open(key, label) {
+    _currentKey   = key;
+    _currentLabel = label;
+    document.getElementById('cmnt-panel-title').textContent = label;
+    document.getElementById('cmnt-panel-ctx').textContent   = key;
+    document.getElementById('cmnt-author-display').textContent = shortName(getAuthor());
+    showTab('thread');
+    document.getElementById('cmnt-panel').classList.add('open');
+    document.getElementById('cmnt-panel-overlay').classList.add('open');
+    document.getElementById('cmnt-text').focus();
+  }
+
+  function close() {
+    document.getElementById('cmnt-panel').classList.remove('open');
+    document.getElementById('cmnt-panel-overlay').classList.remove('open');
+  }
+
+  // ── Tabs ──
+  function showTab(tab) {
+    _currentTab = tab;
+    document.getElementById('cmnt-tab-thread').classList.toggle('active', tab === 'thread');
+    document.getElementById('cmnt-tab-all').classList.toggle('active', tab === 'all');
+    document.getElementById('cmnt-filter-bar').style.display = tab === 'all' ? 'block' : 'none';
+    document.getElementById('cmnt-compose').style.display    = tab === 'thread' ? 'block' : 'none';
+    render();
+  }
+
+  // ── Render ──
+  function render() {
+    _load(function(all) {
+      var el = document.getElementById('cmnt-thread');
+      var items;
+      if (_currentTab === 'thread') {
+        items = all.filter(function(c) { return c.key === _currentKey; });
+      } else {
+        // All comments - apply person filter
+        var filterVal = (document.getElementById('cmnt-filter-person') || {}).value || '';
+        items = filterVal ? all.filter(function(c) { return c.author === filterVal; }) : all.slice();
+        items.sort(function(a,b) { return b.ts.localeCompare(a.ts); });
+        // Populate filter dropdown
+        var sel = document.getElementById('cmnt-filter-person');
+        var authors = [...new Set(all.map(function(c){return c.author;}))].sort();
+        var curVal = sel.value;
+        sel.innerHTML = '<option value="">All people</option>' +
+          authors.map(function(a){
+            return '<option value="'+a+'"'+(a===curVal?' selected':'')+'>'+shortName(a)+'</option>';
+          }).join('');
+      }
+      if (!items.length) {
+        el.innerHTML = '<div class="cmnt-empty">No comments yet.<br>Be the first to ask a question.</div>';
+        return;
+      }
+      el.innerHTML = items.map(function(c) {
+        var badge = _currentTab === 'all'
+          ? '<div class="cmnt-element-badge">'+c.label+'</div>' : '';
+        return '<div class="cmnt-item">'
+          + badge
+          + '<div class="cmnt-item-head">'
+          + '<span class="cmnt-author">'+shortName(c.author)+'</span>'
+          + '<span class="cmnt-time">'+fmtTime(c.ts)+'</span>'
+          + '</div>'
+          + '<div class="cmnt-text">'+escHtml(c.text)+'</div>'
+          + '</div>';
+      }).join('');
+    });
+  }
+
+  function escHtml(s) {
+    return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/\n/g,'<br>');
+  }
+
+  function applyFilter() { render(); }
+
+  // ── Submit ──
+  function submit() {
+    var text = (document.getElementById('cmnt-text').value || '').trim();
+    if (!text) return;
+    var btn = document.getElementById('cmnt-submit');
+    btn.disabled = true;
+    var c = {
+      id:     genId(),
+      key:    _currentKey,
+      label:  _currentLabel,
+      author: getAuthor(),
+      text:   text,
+      ts:     new Date().toISOString(),
+      month:  typeof currentMonth !== 'undefined' ? currentMonth : ''
+    };
+    _save(c, function() {
+      document.getElementById('cmnt-text').value = '';
+      btn.disabled = false;
+      render();
+      refreshAllBadges();
+    });
+  }
+
+  // ── Badge management ──
+  function refreshAllBadges() {
+    _load(function(all) {
+      var countByKey = {};
+      all.forEach(function(c) {
+        countByKey[c.key] = (countByKey[c.key] || 0) + 1;
+      });
+      document.querySelectorAll('.cmnt-btn').forEach(function(btn) {
+        var key = btn.dataset.cmntKey;
+        var n   = countByKey[key] || 0;
+        btn.querySelector('.cmnt-count').textContent = n > 0 ? n : '?';
+        btn.classList.toggle('has-comments', n > 0);
+      });
+    });
+  }
+
+  // ── Wire up a commentable element ──
+  function wire(el, key, label) {
+    if (!el) return;
+    // Find or create button
+    var btn = el.querySelector('.cmnt-btn[data-cmnt-key="'+key+'"]');
+    if (!btn) {
+      btn = document.createElement('button');
+      btn.className = 'cmnt-btn';
+      btn.dataset.cmntKey = key;
+      btn.innerHTML = '&#128172; <span class="cmnt-count">?</span>';
+      btn.title = 'Comments on: ' + label;
+      el.appendChild(btn);
+    }
+    btn.onclick = function(e) {
+      e.stopPropagation();
+      open(key, label);
+    };
+  }
+
+  // Exposed so build_index.py can inject Firestore overrides
+  return {
+    open: open, close: close, showTab: showTab,
+    applyFilter: applyFilter, submit: submit,
+    refreshAllBadges: refreshAllBadges, wire: wire, render: render,
+    _setLoad: function(fn) { _load = fn; },
+    _setSave: function(fn) { _save = fn; },
+    _setListen: function(fn) { _listen = fn; },
+    _setAuthor: function(email) { window._cmntAuthorOverride = email; document.getElementById('cmnt-author-display').textContent = shortName(email); },
+    init: function() {
+      // Wire up after DOM and BUNDLE are ready
+      setTimeout(function() {
+        // KPI cards - Hours and Bill section
+        var hoursWrap = document.getElementById('kpi-hours-wrap') || document.getElementById('summary-kpis');
+        if (hoursWrap) {
+          var kpis = hoursWrap.querySelectorAll('.kpi');
+          var kpiKeys = ['kpi-sched', 'kpi-timeoff', 'kpi-delivered', 'kpi-bill'];
+          var kpiLabels = ['Scheduled Hours', 'Time Off (Shrinkage)', 'Delivered Hours', 'Bill'];
+          kpis.forEach(function(el, i) {
+            if (kpiKeys[i]) wire(el, kpiKeys[i], kpiLabels[i]);
+          });
+        }
+        // Invoice table rows - delegate via the bill-wrap div
+        var billWrap = document.getElementById('bill-table-wrap');
+        if (billWrap) {
+          billWrap.querySelectorAll('tr.bill-group-row').forEach(function(tr) {
+            var label = tr.querySelector('td:first-child') ? tr.querySelector('td:first-child').textContent.replace('+','').replace('-','').trim() : 'Row';
+            var key = 'invoice-' + label.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+            wire(tr.querySelector('td:first-child'), key, label + ' (Invoice)');
+          });
+          // Total row
+          var totalRow = billWrap.querySelector('tr.totals');
+          if (totalRow) wire(totalRow.querySelector('td:first-child'), 'invoice-total', 'Invoice Total');
+        }
+        // Per-site KPI strips
+        document.querySelectorAll('.kpi-row-label').forEach(function(lbl) {
+          var pane = lbl.closest('.pane');
+          if (!pane) return;
+          var site = pane.id.replace('pane-','');
+          var siteLabel = {'lagos':'Lilly Lagos','sa':'Lilly SA','mo':'Lilly MO','gastro':'Gastro'}[site];
+          if (siteLabel) {
+            var strip = lbl.closest('.card') || lbl.parentElement;
+            wire(lbl, 'site-kpi-'+site, siteLabel + ' - Hours & Bill');
+          }
+        });
+        // Chart area
+        var chartArea = document.getElementById('chart-area') || document.querySelector('.chart-area');
+        if (chartArea) wire(chartArea, 'chart-main', 'Summary Chart');
+        refreshAllBadges();
+      }, 500);
+    }
+  };
+})();
+
+// Init after page is ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', function() { window._cmnt.init(); });
+} else {
+  window._cmnt.init();
+}
+</script>
+
 
 <script>
 /* ═══ HEADER BRIDGE: month pills + KPI strip driven by BUNDLE state ═══ */
@@ -4153,6 +4613,100 @@ window.rerenderAll = rerenderAll;  // expose for post-auth re-render in build_in
     else { setTimeout(tryRender,100); }
   }
   tryRender();
+})();
+</script>
+
+<script>
+/* ═══ COMMENT SYSTEM — FIRESTORE PATCH ═══
+   Replaces localStorage with Firestore when user is signed in.
+   Comments are shared across the team and persisted server-side.
+   Collection: billing_comments/{commentId}
+   Each doc: { id, key, label, author, text, ts, month }
+*/
+(function(){
+  var COLLECTION = 'billing_comments';
+  var _db = null;
+  var _unsubscribe = null;
+  var _pendingRender = false;
+  var _lastKey = null;
+
+  function ready() {
+    // Wait for Firebase + auth + _cmnt engine to all be available
+    if (typeof firebase === 'undefined' || !window._fbDb || !window._cmnt) {
+      return setTimeout(ready, 200);
+    }
+    _db = window._fbDb;
+
+    // Patch _cmnt storage to use Firestore
+    window._cmnt._setLoad(function(cb) {
+      _db.collection(COLLECTION).orderBy('ts','asc').get().then(function(snap) {
+        var arr = [];
+        snap.forEach(function(doc) { arr.push(doc.data()); });
+        cb(arr);
+      }).catch(function(e) {
+        console.warn('[comments] Firestore read failed, falling back to localStorage:', e);
+        try { cb(JSON.parse(localStorage.getItem('gh_billing_comments_v1') || '[]')); }
+        catch(e2) { cb([]); }
+      });
+    });
+
+    window._cmnt._setSave(function(comment, cb) {
+      _db.collection(COLLECTION).doc(comment.id).set(comment).then(function() {
+        if (cb) cb();
+      }).catch(function(e) {
+        console.warn('[comments] Firestore write failed:', e);
+        // Fallback to localStorage
+        try {
+          var arr = JSON.parse(localStorage.getItem('gh_billing_comments_v1') || '[]');
+          arr.push(comment);
+          localStorage.setItem('gh_billing_comments_v1', JSON.stringify(arr));
+        } catch(e2){}
+        if (cb) cb();
+      });
+    });
+
+    // Real-time listener: refresh badges + re-render panel if open
+    _db.collection(COLLECTION).orderBy('ts','asc').onSnapshot(function(snap) {
+      window._cmnt.refreshAllBadges();
+      // If panel is open, re-render current view
+      var panel = document.getElementById('cmnt-panel');
+      if (panel && panel.classList.contains('open')) {
+        window._cmnt.render();
+      }
+    }, function(e) {
+      console.warn('[comments] Firestore listener error:', e);
+    });
+  }
+
+  // Hook into showApp to set author identity from Firebase user
+  var _origShowApp = window.showApp;
+  // We can't directly wrap showApp (it's inside the IIFE), so we watch for main-app visibility
+  var mainApp = document.getElementById('main-app');
+  if (mainApp) {
+    new MutationObserver(function() {
+      if (mainApp.style.display !== 'none' && mainApp.style.display !== '') {
+        // User is now signed in — get their email from Firebase auth
+        try {
+          if (window._fbAuth && window._fbAuth.currentUser) {
+            window._cmnt._setAuthor(window._fbAuth.currentUser.email);
+          }
+        } catch(e) {}
+        ready();
+      }
+    }).observe(mainApp, {attributes: true, attributeFilter: ['style']});
+  }
+
+  // Also try immediately in case already signed in
+  setTimeout(function() {
+    if (window._fbAuth) {
+      window._fbAuth.onAuthStateChanged(function(user) {
+        if (user) {
+          window._cmnt._setAuthor(user.email);
+          ready();
+        }
+      });
+    }
+  }, 500);
 })();
 </script>
 
