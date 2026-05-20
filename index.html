@@ -620,19 +620,35 @@
   }
   /* ── COMMENT SYSTEM ─────────────────────────────────────────── */
   .cmnt-btn {
-    display: inline-flex; align-items: center; gap: 3px;
-    padding: 2px 6px; border: 1px solid #cbd5e1; background: #f8fafc;
-    border-radius: 10px; font-size: 9px; font-family: 'DM Mono', monospace;
-    font-weight: 600; color: #64748b; cursor: pointer;
-    transition: all .15s; white-space: nowrap; vertical-align: middle;
-    line-height: 1.4; opacity: 0; pointer-events: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 18px; height: 18px; padding: 0;
+    border: 1px dashed #cbd5e1; background: transparent;
+    border-radius: 50%; font-size: 11px; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; color: #94a3b8; cursor: pointer;
+    transition: all .15s; line-height: 1; vertical-align: middle;
+    opacity: 0; pointer-events: none;
   }
+  .cmnt-btn:hover { color: #475569; border-color: #94a3b8; }
   .cmnt-btn.has-comments {
     opacity: 1 !important; pointer-events: auto !important;
-    border-color: #3b82f6; background: #eff6ff; color: #2563eb;
+    border-style: solid; border-color: #3b82f6;
+    background: #3b82f6; color: #fff; width: auto; min-width: 18px;
+    padding: 0 5px; border-radius: 9px; font-size: 10px;
   }
-  .cmnt-btn .cmnt-count { font-size: 9px; font-weight: 700; }
-  tr:hover .cmnt-btn, .kpi:hover .cmnt-btn, .card:hover .cmnt-btn { opacity: 1; pointer-events: auto; }
+  .cmnt-btn .cmnt-count { font-size: 10px; font-weight: 700; }
+  .cmnt-btn .cmnt-empty-glyph { font-size: 13px; line-height: 1; margin-top: -1px; }
+  tr:hover .cmnt-btn, .kpi:hover .cmnt-btn, .card:hover .cmnt-btn { opacity: 0.5; pointer-events: auto; }
+  tr:hover .cmnt-btn:hover, .kpi:hover .cmnt-btn:hover, .card:hover .cmnt-btn:hover { opacity: 1; }
+
+  /* Avatar circles for comment authors */
+  .cmnt-avatar {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 700;
+    color: #fff; letter-spacing: 0.02em; flex-shrink: 0;
+    text-transform: uppercase;
+  }
+  .cmnt-avatar-sm { width: 18px; height: 18px; font-size: 8px; }
 
   /* Side panel */
   #cmnt-panel {
@@ -2072,7 +2088,7 @@ function renderBillComparisonChart(vals) {
     options: {
       indexAxis: 'y',
       responsive: true, maintainAspectRatio: false,
-      layout: { padding: { right: 130 } },
+      layout: { padding: { left: 10, right: 130 } },
       plugins: {
         legend: {
           display: showIncentive,
@@ -2101,7 +2117,8 @@ function renderBillComparisonChart(vals) {
         },
         y: {
           stacked: true,
-          ticks: { font: { family: "'DM Sans'", size: 12, weight: '500' } },
+          afterFit: function(scale) { scale.width = 100; },
+          ticks: { font: { family: "'DM Sans'", size: 12, weight: '500' }, padding: 8 },
           grid: { display: false },
         },
       },
@@ -2252,10 +2269,10 @@ function renderSummaryKPIs() {
   const blendedRate = totalDelivered ? (totalBill / totalDelivered) : 0;
 
   hoursWrap.innerHTML = `
-    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-sched" onclick="window._cmnt.open('kpi-sched','Scheduled Hours')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(totalSched)}</div><div class="delta">${totalAgents} agents w/ hours</div></div>
-    <div class="kpi ${absPct != null && absPct >= 10 ? 'crisis' : absPct != null && absPct >= 6 ? 'warn' : 'ok'}" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-timeoff" onclick="window._cmnt.open('kpi-timeoff','Time Off (Shrinkage)')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Time off (shrinkage)</div><div class="val">${hasRaw ? fmt.int(totalAbs) : '-'} <span style="font-size: 13px; color: ${absPct != null && absPct >= 10 ? '#991b1b' : absPct != null && absPct >= 6 ? '#92400e' : '#065f46'}; font-weight: 600;">${absPct != null ? '(' + fmt.pct1(absPct) + ')' : ''}</span></div><div class="delta">ABS + PTO + LOA</div></div>
-    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-delivered" onclick="window._cmnt.open('kpi-delivered','Delivered Hours')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(totalDelivered)} <span style="font-size: 13px; color: var(--muted); font-weight: 500;">${totalSched ? '(' + (totalDelivered / totalSched * 100).toFixed(1) + '%)' : ''}</span></div><div class="delta">${totalSched ? fmt.pct1(totalDelivered/totalSched*100) + ' of scheduled' : 'net of shrinkage allowance'}</div></div>
-    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-bill" onclick="window._cmnt.open('kpi-bill','Invoice Bill')" style="position:absolute;top:6px;right:6px;">&#128172; <span class="cmnt-count">?</span></button><div class="lbl">Bill</div><div class="val">${fmt.money(totalBill)}</div><div class="delta">blended ${blendedRate ? '$' + blendedRate.toFixed(2) + '/hr' : '-'}</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-sched" onclick="window._cmnt.open('kpi-sched','Scheduled Hours')" style="position:absolute;top:6px;right:6px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button><div class="lbl">Scheduled hrs</div><div class="val">${fmt.int(totalSched)}</div><div class="delta">${totalAgents} agents w/ hours</div></div>
+    <div class="kpi ${absPct != null && absPct >= 10 ? 'crisis' : absPct != null && absPct >= 6 ? 'warn' : 'ok'}" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-timeoff" onclick="window._cmnt.open('kpi-timeoff','Time Off (Shrinkage)')" style="position:absolute;top:6px;right:6px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button><div class="lbl">Time off (shrinkage)</div><div class="val">${hasRaw ? fmt.int(totalAbs) : '-'} <span style="font-size: 13px; color: ${absPct != null && absPct >= 10 ? '#991b1b' : absPct != null && absPct >= 6 ? '#92400e' : '#065f46'}; font-weight: 600;">${absPct != null ? '(' + fmt.pct1(absPct) + ')' : ''}</span></div><div class="delta">ABS + PTO + LOA</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-delivered" onclick="window._cmnt.open('kpi-delivered','Delivered Hours')" style="position:absolute;top:6px;right:6px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button><div class="lbl">Delivered hrs</div><div class="val">${fmt.int(totalDelivered)} <span style="font-size: 13px; color: var(--muted); font-weight: 500;">${totalSched ? '(' + (totalDelivered / totalSched * 100).toFixed(1) + '%)' : ''}</span></div><div class="delta">${totalSched ? fmt.pct1(totalDelivered/totalSched*100) + ' of scheduled' : 'net of shrinkage allowance'}</div></div>
+    <div class="kpi" style="position:relative;"><button class="cmnt-btn" data-cmnt-key="kpi-bill" onclick="window._cmnt.open('kpi-bill','Invoice Bill')" style="position:absolute;top:6px;right:6px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button><div class="lbl">Bill</div><div class="val">${fmt.money(totalBill)}</div><div class="delta">blended ${blendedRate ? '$' + blendedRate.toFixed(2) + '/hr' : '-'}</div></div>
   `;
 
   // Performance (weighted by site agent count for Lilly + Gastro sites)
@@ -2486,17 +2503,18 @@ function renderBillTableOverall(data, wrap) {
       // ── Group row (always visible, aggregated totals) ─────────────────────
       rows += `<tr class="bill-group-row" onclick="(function(btn,key){
         var drows=document.querySelectorAll('.bill-detail-row[data-group=\\''+key+'\\']');
-        var expanded=btn.textContent==='-';
-        btn.textContent=expanded?'+':'-';
+        var expanded=btn.dataset.expanded==='1';
+        btn.dataset.expanded=expanded?'0':'1';
+        btn.innerHTML=expanded?'&#9656;':'&#9662;';
         drows.forEach(function(r){r.style.display=expanded?'none':'table-row';});
       })(this.querySelector('.expand-btn'),'${grp.key}')" style="cursor:pointer;">
         <td style="font-weight:700;color:var(--ink);white-space:nowrap;">
-          <button class="expand-btn" style="width:18px;height:18px;border:1px solid #94a3b8;
-            background:#f8fafc;font-size:11px;font-weight:700;cursor:pointer;margin-right:8px;
-            vertical-align:middle;line-height:1;color:#475569;border-radius:2px;">+</button>${grp.label}
+          <button class="expand-btn" data-expanded="0" style="width:20px;height:20px;border:none;
+            background:transparent;font-size:11px;cursor:pointer;margin-right:8px;
+            vertical-align:middle;line-height:1;color:#64748b;padding:0;">&#9656;</button>${grp.label}
           <button class="cmnt-btn" data-cmnt-key="invoice-${grp.key}" title="Comments on ${grp.label}"
-            onclick="event.stopPropagation();window._cmnt.open('invoice-${grp.key}','${grp.label} - Invoice')"
-            style="margin-left:8px;">&#128172; <span class="cmnt-count">?</span></button></td>
+            onclick="event.stopPropagation();window._cmnt.open('invoice-${grp.key}','${grp.label} &mdash; Invoice')"
+            style="margin-left:6px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button></td>
         <td class="num">${g.nBill}</td>
         <td class="num">${g.nAct}</td>
         <td class="num">${gDays != null ? gDays : '<span style="color:var(--muted-soft)">-</span>'}</td>
@@ -4251,7 +4269,7 @@ window.rerenderAll = rerenderAll;  // expose for post-auth re-render in build_in
   <div id="cmnt-compose">
     <textarea id="cmnt-text" placeholder="Ask a question or leave a note…"></textarea>
     <div id="cmnt-compose-foot">
-      <span id="cmnt-author-label">Posting as <strong id="cmnt-author-display">-</strong></span>
+      <span id="cmnt-author-label" style="display:flex;align-items:center;gap:6px;">Posting as <span id="cmnt-author-avatar"></span><strong id="cmnt-author-display">-</strong></span>
       <button id="cmnt-submit" onclick="window._cmnt.submit()">Post</button>
     </div>
   </div>
@@ -4311,6 +4329,43 @@ window._cmnt = (function(){
     return local;
   }
 
+  function initialsFor(email) {
+    if (!email) return '??';
+    var local = email.split('@')[0];
+    var parts = local.split('.');
+    if (parts.length >= 2) {
+      return (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+    }
+    return local.substring(0, 2).toUpperCase();
+  }
+
+  // Pleasant, accessible palette (10 colors). Deterministic by hash so a given user
+  // always gets the same color across sessions and across machines.
+  var AVATAR_COLORS = [
+    '#0f766e', // teal
+    '#2563eb', // blue
+    '#7c3aed', // violet
+    '#db2777', // pink
+    '#dc2626', // red
+    '#ea580c', // orange
+    '#ca8a04', // amber
+    '#16a34a', // green
+    '#0891b2', // cyan
+    '#475569', // slate
+  ];
+
+  function colorFor(email) {
+    if (!email) return AVATAR_COLORS[AVATAR_COLORS.length - 1];
+    var h = 0;
+    for (var i = 0; i < email.length; i++) h = (h * 31 + email.charCodeAt(i)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  }
+
+  function avatarHtml(email, size) {
+    var cls = (size === 'sm') ? 'cmnt-avatar cmnt-avatar-sm' : 'cmnt-avatar';
+    return '<span class="' + cls + '" style="background:' + colorFor(email) + ';" title="' + escHtml(email || '') + '">' + initialsFor(email) + '</span>';
+  }
+
   function fmtTime(iso) {
     try {
       var d = new Date(iso);
@@ -4337,7 +4392,10 @@ window._cmnt = (function(){
     _currentLabel = label;
     document.getElementById('cmnt-panel-title').textContent = label;
     document.getElementById('cmnt-panel-ctx').textContent   = key;
-    document.getElementById('cmnt-author-display').textContent = shortName(getAuthor());
+    var email = getAuthor();
+    document.getElementById('cmnt-author-display').textContent = shortName(email);
+    var avEl = document.getElementById('cmnt-author-avatar');
+    if (avEl) avEl.innerHTML = avatarHtml(email, 'sm');
     showTab('thread');
     document.getElementById('cmnt-panel').classList.add('open');
     document.getElementById('cmnt-panel-overlay').classList.add('open');
@@ -4389,11 +4447,16 @@ window._cmnt = (function(){
           ? '<div class="cmnt-element-badge">'+c.label+'</div>' : '';
         return '<div class="cmnt-item">'
           + badge
-          + '<div class="cmnt-item-head">'
+          + '<div style="display:flex;gap:10px;align-items:flex-start;">'
+          + avatarHtml(c.author)
+          + '<div style="flex:1;min-width:0;">'
+          + '<div class="cmnt-item-head" style="margin-bottom:2px;">'
           + '<span class="cmnt-author">'+shortName(c.author)+'</span>'
           + '<span class="cmnt-time">'+fmtTime(c.ts)+'</span>'
           + '</div>'
           + '<div class="cmnt-text">'+escHtml(c.text)+'</div>'
+          + '</div>'
+          + '</div>'
           + '</div>';
       }).join('');
     });
@@ -4439,7 +4502,15 @@ window._cmnt = (function(){
       document.querySelectorAll('.cmnt-btn').forEach(function(btn) {
         var key = btn.dataset.cmntKey;
         var n   = countByKey[key] || 0;
-        btn.querySelector('.cmnt-count').textContent = n > 0 ? n : '?';
+        var countEl = btn.querySelector('.cmnt-count');
+        var emptyEl = btn.querySelector('.cmnt-empty-glyph');
+        if (countEl) {
+          countEl.textContent = n;
+          countEl.style.display = n > 0 ? 'inline' : 'none';
+        }
+        if (emptyEl) {
+          emptyEl.style.display = n > 0 ? 'none' : 'inline';
+        }
         btn.classList.toggle('has-comments', n > 0);
       });
     });
@@ -4454,7 +4525,7 @@ window._cmnt = (function(){
       btn = document.createElement('button');
       btn.className = 'cmnt-btn';
       btn.dataset.cmntKey = key;
-      btn.innerHTML = '&#128172; <span class="cmnt-count">?</span>';
+      btn.innerHTML = '<span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span>';
       btn.title = 'Comments on: ' + label;
       el.appendChild(btn);
     }
@@ -4472,7 +4543,13 @@ window._cmnt = (function(){
     _setLoad: function(fn) { _load = fn; },
     _setSave: function(fn) { _save = fn; },
     _setListen: function(fn) { _listen = fn; },
-    _setAuthor: function(email) { window._cmntAuthorOverride = email; document.getElementById('cmnt-author-display').textContent = shortName(email); },
+    _setAuthor: function(email) {
+      window._cmntAuthorOverride = email;
+      var d = document.getElementById('cmnt-author-display');
+      if (d) d.textContent = shortName(email);
+      var a = document.getElementById('cmnt-author-avatar');
+      if (a) a.innerHTML = avatarHtml(email, 'sm');
+    },
     init: function() {
       // Wire up after DOM and BUNDLE are ready
       setTimeout(function() {
@@ -4486,17 +4563,23 @@ window._cmnt = (function(){
             if (kpiKeys[i]) wire(el, kpiKeys[i], kpiLabels[i]);
           });
         }
-        // Invoice table rows - delegate via the bill-wrap div
+        // Invoice table rows already have inline cmnt-btn elements from the template.
+        // Just re-bind onclick to point at our open() function so they survive re-renders.
         var billWrap = document.getElementById('bill-table-wrap');
         if (billWrap) {
-          billWrap.querySelectorAll('tr.bill-group-row').forEach(function(tr) {
-            var label = tr.querySelector('td:first-child') ? tr.querySelector('td:first-child').textContent.replace('+','').replace('-','').trim() : 'Row';
-            var key = 'invoice-' + label.toLowerCase().replace(/[^a-z0-9]+/g,'-');
-            wire(tr.querySelector('td:first-child'), key, label + ' (Invoice)');
+          billWrap.querySelectorAll('.cmnt-btn[data-cmnt-key^="invoice-"]').forEach(function(btn) {
+            var key = btn.dataset.cmntKey;
+            // Derive label from the data-cmnt-key (invoice-lilly-lagos → "Lilly Lagos (Invoice)")
+            var lbl = key.replace('invoice-','').split('-').map(function(w){
+              return w.charAt(0).toUpperCase() + w.slice(1);
+            }).join(' ') + ' (Invoice)';
+            btn.onclick = function(e) { e.stopPropagation(); open(key, lbl); };
           });
-          // Total row
+          // Total row may need a button added if it doesn't have one inline
           var totalRow = billWrap.querySelector('tr.totals');
-          if (totalRow) wire(totalRow.querySelector('td:first-child'), 'invoice-total', 'Invoice Total');
+          if (totalRow && !totalRow.querySelector('.cmnt-btn')) {
+            wire(totalRow.querySelector('td:first-child'), 'invoice-total', 'Invoice Total');
+          }
         }
         // Per-site KPI strips
         document.querySelectorAll('.kpi-row-label').forEach(function(lbl) {
