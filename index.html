@@ -150,7 +150,7 @@
 
   /* ============== CALLOUTS ============== */
   .callout {
-    border-left: 3px solid; padding: 12px 16px; margin: 12px 0;
+    padding: 12px 16px; margin: 12px 0;
     background: var(--card); font-size: 13px;
   }
   .callout strong { font-weight: 600; }
@@ -199,25 +199,18 @@
   .dist-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 8px 0 16px; }
   .dist-grid.action-summary-grid { grid-template-columns: repeat(5, 1fr); margin-bottom: 20px; }
   .dist-card {
-    background: var(--card); border: 1px solid var(--border); border-left: 3px solid;
+    background: var(--card); border: 1px solid var(--border);
     border-radius: 0; padding: 12px 14px;
   }
   .dist-card .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
   .dist-card .val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; margin-top: 4px; color: var(--ink-soft); }
   .dist-card .pct { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
-  .dist-card.active { border-left-color: var(--green); }
   .dist-card.active .lbl { color: var(--green); }
-  .dist-card.probation { border-left-color: var(--amber); }
   .dist-card.probation .lbl { color: var(--amber); }
-  .dist-card.pip-review { border-left-color: var(--amber); }
   .dist-card.pip-review .lbl { color: var(--amber); }
-  .dist-card.exit-cand { border-left-color: #9a3412; }
   .dist-card.exit-cand .lbl { color: #9a3412; }
-  .dist-card.manage-out { border-left-color: var(--red); }
   .dist-card.manage-out .lbl { color: var(--red); }
-  .dist-card.exited { border-left-color: var(--muted); }
   .dist-card.exited .lbl { color: var(--muted); }
-  .dist-card.flagged { border-left-color: var(--accent); }
   .dist-card.flagged .lbl { color: var(--accent); }
 
   /* ============== TABLES ============== */
@@ -280,7 +273,6 @@
   #outlier-table tbody td.metric-cell {
     font-weight: 600; font-size: 11px;
     text-transform: uppercase; letter-spacing: 0.04em;
-    border-left: 3px solid;
   }
   .metric-tag {
     display: inline-block; padding: 2px 8px;
@@ -378,7 +370,7 @@
   }
   .visibility-tag.client { background: #dcfce7; color: #15803d; border-color: #86efac; }
 
-  .internal-banner { background: linear-gradient(to right, #fffbeb, #fff 200px); border-left: 4px solid #d97706; }
+  .internal-banner { background: linear-gradient(to right, #fffbeb, #fff 200px); }
   .internal-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
   .internal-tag {
     display: inline-block; background: #d97706; color: #fff; padding: 3px 8px;
@@ -525,10 +517,8 @@
   .total-card .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
   .total-card .val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 600; color: var(--ink); margin-top: 4px; }
   .total-card .delta { font-size: 11px; margin-top: 4px; font-family: 'DM Mono', monospace; }
-  .total-card.base { border-left: 4px solid #475569; }
-  .total-card.incentive { border-left: 4px solid #0d9488; }
   .total-card.incentive .val { color: #0d9488; }
-  .total-card.gh-bill { border-left: 4px solid #d97706; background: #fffbeb; }
+  .total-card.gh-bill { background: #fffbeb; }
   .total-card.gh-bill .val { color: #b45309; }
 
   /* ============== FILTER BAR ============== */
@@ -627,7 +617,6 @@
 
   .insight-card {
     background: var(--card); border: 1px solid var(--border);
-    border-left: 4px solid;
     border-radius: 0; padding: 14px 16px;
   }
   /* ── COMMENT SYSTEM ─────────────────────────────────────────── */
@@ -716,10 +705,6 @@
   .bill-group-row td { border-bottom: 1px solid #d1d5db; padding: 8px 5px; }
   .bill-detail-row td { border-bottom: 1px solid #f3f4f6; background: #fefefe; padding: 6px 5px; }
   .bill-detail-row.bill-subrow td { background: #f1f5f9 !important; border-bottom: 1px solid #e2e8f0; padding: 8px 14px 12px 48px; }
-  .insight-card.lagos { border-left-color: #0f766e; }
-  .insight-card.sa { border-left-color: #6d28d9; }
-  .insight-card.mo { border-left-color: var(--red); }
-  .insight-card.gastro { border-left-color: #1d4ed8; }
   .insight-card .head {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #f1f5f9;
@@ -743,15 +728,15 @@
     margin-bottom: 10px;
   }
   .insight-card .stat-cell {
-    background: #f8fafc; padding: 6px 10px; border-left: 2px solid var(--border);
+    background: #f8fafc; padding: 6px 10px;
   }
   .insight-card .stat-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
   .insight-card .stat-val { font-family: 'DM Mono', monospace; font-size: 14px; font-weight: 600; color: var(--ink); }
-  .insight-card .stat-cell.target-good { border-left-color: var(--green); }
+  .insight-card .stat-cell.target-good { background: #f0fdf4; }
   .insight-card .stat-cell.target-good .stat-val { color: var(--green); }
-  .insight-card .stat-cell.target-warn { border-left-color: var(--amber); }
+  .insight-card .stat-cell.target-warn { background: #fffbeb; }
   .insight-card .stat-cell.target-warn .stat-val { color: var(--amber); }
-  .insight-card .stat-cell.target-bad { border-left-color: var(--red); }
+  .insight-card .stat-cell.target-bad { background: #fef2f2; }
   .insight-card .stat-cell.target-bad .stat-val { color: var(--red); }
   .insight-card .body { font-size: 12px; line-height: 1.55; color: var(--slate); }
   .insight-card .body strong { color: var(--ink); }
@@ -1875,7 +1860,7 @@ function renderWaveTimeline() {
 
   for (const sec of sections) {
     if (!sec.rows.length) continue;
-    html += `<tr class="site-divider"><td colspan="${weeks.length + 1}" style="border-left: 3px solid ${sec.color};">${sec.label}</td></tr>`;
+    html += `<tr class="site-divider"><td colspan="${weeks.length + 1}" style="">${sec.label}</td></tr>`;
     for (const row of sec.rows) {
       html += '<tr>';
       html += `<td class="wave-name">${row.name}<span class="count">${row.count}</span></td>`;
@@ -2765,7 +2750,7 @@ function renderBillTableOverall(data, wrap) {
           const wdIncBill  = d.wdHrs * d.incentiveRate;
           const weIncBill  = d.weHrs * d.incentiveWeRate;
           rows += `<tr class="bill-detail-row bill-subrow" data-group="${grp.key}" style="display:none;">
-            <td colspan="16" style="padding:8px 14px 12px 48px;font-size:10px;color:#475569;background:#f1f5f9 !important;border-left:3px solid #94a3b8;">
+            <td colspan="16" style="padding:8px 14px 12px 48px;font-size:10px;color:#475569;background:#f1f5f9 !important;">
               <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 16px;align-items:start;">
                 <div style="font-family:'DM Mono',monospace;color:#475569;letter-spacing:.06em;font-weight:700;font-size:9px;">WEEKDAY</div>
                 <div style="font-size:11px;">${fmt.int(d.wdHrs)} hrs @ $${d.baseRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${fmt.money(wdBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${fmt.money(wdIncBill)}</span>` : ''}</div>
@@ -3501,7 +3486,7 @@ function heatmapCalloutHtml(site, siteLabel) {
   const placeholderTag = (site === 'Hugo: MO')
     ? ' <span style="color: var(--muted-soft); font-size: 10px;">(CSAT placeholder, pending MO dashboard)</span>'
     : '';
-  return `<div class="callout-slate" style="background: #f8fafc; border-left: 3px solid #94a3b8; padding: 10px 14px; font-size: 12px; line-height: 1.55; color: var(--ink);">
+  return `<div class="callout-slate" style="background: #f8fafc; padding: 10px 14px; font-size: 12px; line-height: 1.55; color: var(--ink);">
     <strong>Average performance for ${siteLabel}</strong> is <strong>${sp.adherence.toFixed(1)}% adherence</strong> and <strong>${sp.csat.toFixed(1)}% CSAT</strong>${placeholderTag}. This translates to an effective rate of <strong style="font-family: var(--mono);">$${eff.toFixed(2)}/hr</strong> vs base <span style="font-family: var(--mono);">$${base.toFixed(2)}/hr</span>.
   </div>`;
 }
