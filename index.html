@@ -196,12 +196,13 @@
   .kpi.muted .val { color: var(--muted-soft); font-size: 16px; }
 
   /* Workforce distribution cards */
-  .dist-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 8px 0 16px; }
+  .dist-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0; margin: 8px 0 16px; }
   .dist-grid.action-summary-grid { grid-template-columns: repeat(5, 1fr); margin-bottom: 20px; }
   .dist-card {
-    background: var(--card); border: 1px solid var(--border);
+    background: transparent; border: none;
     border-radius: 0; padding: 12px 14px;
   }
+  .dist-grid .dist-card + .dist-card { border-left: 1px dashed #e2e5ea; }
   .dist-card .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
   .dist-card .val { font-family: 'DM Mono', monospace; font-size: 22px; font-weight: 500; margin-top: 4px; color: var(--ink-soft); }
   .dist-card .pct { font-size: 12px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
@@ -1111,9 +1112,9 @@ header.title-block { display: none !important; }
     </div>
   </div>
 
-  <div class="card">
-    <h2>Lilly incentives &amp; passthrough charges</h2>
-    <p>These items are billed in addition to the base hourly amounts above. They are fixed passthrough costs that Lilly/GH owes per the program agreement.</p>
+  <div class="card" id="passthrough-card">
+    <div class="kpi-row-label" style="margin-top:0;">Lilly incentives &amp; passthrough charges</div>
+    <p style="font-size:12px;color:var(--muted);margin:2px 0 0;">Billed in addition to the base hourly amounts above. Fixed passthrough costs Lilly/GH owes per the program agreement.</p>
     <table class="bill-table" style="margin-top: 12px;">
       <thead>
         <tr class="invoice-group-row">
@@ -1122,27 +1123,9 @@ header.title-block { display: none !important; }
           <th class="group-incentive num" style="width: 20%;">Amount</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td style="font-weight: 600;">Kwikpen</td>
-          <td style="color: var(--muted);">Lilly product incentive passthrough</td>
-          <td class="num" style="font-family: var(--mono, 'DM Mono', monospace); font-weight: 600;">$10,300.00</td>
-        </tr>
-        <tr>
-          <td style="font-weight: 600;">Yelp Reviews</td>
-          <td style="color: var(--muted);">Lilly patient review program incentive</td>
-          <td class="num" style="font-family: var(--mono, 'DM Mono', monospace); font-weight: 600;">$925.00</td>
-        </tr>
-        <tr class="totals">
-          <td>Total passthrough</td>
-          <td></td>
-          <td class="num">$11,225.00</td>
-        </tr>
-      </tbody>
+      <tbody id="passthrough-body"></tbody>
     </table>
-    <div class="callout context" style="margin-top: 10px;">
-      <strong>Note.</strong> These amounts are fixed per-month contract items, not tied to agent hours or performance. Grand total invoice = base hours bill + incentive uplift + $11,225 passthrough.
-    </div>
+    <div class="callout context" id="passthrough-note" style="margin-top: 10px;"></div>
   </div>
 
   <div class="card">
@@ -1302,6 +1285,26 @@ header.title-block { display: none !important; }
 </section>
 
 <!-- ============================ INTERNAL ============================ -->
+<!-- ============================ TRENDS ============================ -->
+<section class="pane" id="pane-trends">
+  <div class="card">
+    <div class="kpi-row-label" style="margin-top:0;">Month-over-month trends <span>&middot; internal &middot; click a metric to expand the site view</span></div>
+    <div id="trend-range" style="display:flex;gap:8px;align-items:center;margin:10px 0 4px;flex-wrap:wrap;"></div>
+    <p style="font-size:11px;color:var(--muted);margin:4px 0 0;">Toggle months to include. Values are color-coded against target. Metrics not captured for a month show n/a.</p>
+  </div>
+
+  <div class="card">
+    <div class="kpi-row-label" style="margin-top:0;" id="trend-mom-title">Current month vs prior</div>
+    <div id="trend-kpis"></div>
+  </div>
+
+  <div class="card">
+    <div class="kpi-row-label" style="margin-top:0;">Metric trend <span>&middot; overall with site drill-down</span></div>
+    <div id="trend-table"></div>
+    <div class="legend" style="margin-top:10px;"><div class="item" id="trend-legend"></div></div>
+  </div>
+</section>
+
 <section class="pane" id="pane-internal">
 
   <div class="card internal-banner">
@@ -1359,6 +1362,12 @@ header.title-block { display: none !important; }
     <h3 style="margin: 0 0 10px;">Side-by-side total</h3>
     <div class="totals-grid" id="internal-totals-grid"></div>
   </div>
+  <div class="card" id="internal-passthrough-card" style="margin-top: 20px;">
+    <h3 style="margin: 0 0 4px;">Pass-through incentives <span style="font-weight: 400; font-size: 12px; color: var(--muted);">&middot; editable &middot; flows to the invoice passthrough table</span></h3>
+    <p style="font-size: 11px; color: var(--muted); margin: 0 0 12px;">Add or edit the fixed pass-through items billed on top of base hours (Yelp, Kwikpen, etc.) for the selected month. Saved to this browser; the bundle remains the source of truth on rebuild. Use "Reset" to revert to bundle values.</p>
+    <div id="internal-passthrough-editor"></div>
+  </div>
+
   <div class="card" id="internal-scorecard-card" style="margin-top: 20px; display:none;">
     <h3 style="margin: 0 0 10px;">Workforce scorecard <span style="font-weight: 400; font-size: 12px; color: var(--muted);">&middot; absenteeism, exits, and attrition by site (month over month)</span></h3>
     <div id="internal-scorecard-wrap"></div>
@@ -1534,6 +1543,7 @@ document.querySelectorAll('#tabs button').forEach(btn => {
     btn.classList.add('active');
     const pane = document.getElementById('pane-' + btn.dataset.tab);
     if (pane) pane.classList.add('active');
+    if (btn.dataset.tab === 'trends') { try { renderTrends(); } catch(e){} }
   });
 });
 
@@ -2481,6 +2491,96 @@ function renderScorecardInternalTables() {
     ${anyAdj ? `<div style="font-size:11px;color:var(--muted);margin-top:8px;">* ${prevL} SA attrition adjusted to exclude 43 JHB to Cape Town transitions (planned operational move, not voluntary turnover). Raw ${prevL} SA was 37.3%.</div>` : ''}
     <div style="font-size:11px;color:var(--muted);margin-top:6px;">Absenteeism = ABS-coded hours &divide; scheduled. Exits = no approved PTO and partial month worked (provisional). Memorial Day (May 25) was a US holiday with no production at MO.</div>`;
 }
+// ============== PASS-THROUGH INCENTIVES (data-driven + editable) ==============
+function money2(n){ return (n==null||isNaN(n)) ? '-' : '$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function ptStorageKey(m){ return 'gh_passthrough_' + m; }
+function getPassthroughOverride(m){
+  try { const raw = localStorage.getItem(ptStorageKey(m)); return raw ? JSON.parse(raw) : null; }
+  catch(e){ return (window._ptSession && window._ptSession[m]) || null; }
+}
+function savePassthroughOverride(m, items){
+  try { localStorage.setItem(ptStorageKey(m), JSON.stringify(items)); }
+  catch(e){ window._ptSession = window._ptSession || {}; window._ptSession[m] = items; }
+}
+function clearPassthroughOverride(m){
+  try { localStorage.removeItem(ptStorageKey(m)); } catch(e){}
+  if (window._ptSession) delete window._ptSession[m];
+}
+function effectivePassthrough(){
+  const data = getData();
+  const ov = getPassthroughOverride(currentMonth);
+  if (ov) return ov;
+  return (data.lilly_pass_through || []).map(p => ({ name: p.name, desc: p.notes || '', amount: p.amount }));
+}
+function renderPassthrough(){
+  const card = document.getElementById('passthrough-card');
+  const body = document.getElementById('passthrough-body');
+  const note = document.getElementById('passthrough-note');
+  if (!card || !body) return;
+  const items = effectivePassthrough();
+  if (!items.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  const total = items.reduce((s,i)=> s + (Number(i.amount)||0), 0);
+  body.innerHTML = items.map(i => `<tr>
+      <td style="font-weight:600;">${fmt.txt(i.name)}</td>
+      <td style="color:var(--muted);">${fmt.txt(i.desc)}</td>
+      <td class="num" style="font-family:var(--mono,'DM Mono',monospace);font-weight:600;">${money2(i.amount)}</td>
+    </tr>`).join('') +
+    `<tr class="totals"><td>Total passthrough</td><td></td><td class="num">${money2(total)}</td></tr>`;
+  if (note) note.innerHTML = `<strong>Note.</strong> Fixed per-month contract items, not tied to agent hours or performance. Grand total invoice = base hours bill + incentive uplift + ${money2(total)} passthrough.`;
+}
+function renderPassthroughEditor(){
+  const wrap = document.getElementById('internal-passthrough-editor');
+  if (!wrap) return;
+  const items = effectivePassthrough();
+  const isOverride = !!getPassthroughOverride(currentMonth);
+  const total = items.reduce((s,i)=> s + (Number(i.amount)||0), 0);
+  const rows = items.map((i, idx) => `<tr>
+      <td><input data-pt-field="name" data-pt-idx="${idx}" value="${(i.name||'').replace(/"/g,'&quot;')}" style="width:100%;padding:5px 7px;border:1px solid var(--border);font-family:'DM Sans';font-size:12px;"></td>
+      <td><input data-pt-field="desc" data-pt-idx="${idx}" value="${(i.desc||'').replace(/"/g,'&quot;')}" style="width:100%;padding:5px 7px;border:1px solid var(--border);font-family:'DM Sans';font-size:12px;"></td>
+      <td><input data-pt-field="amount" data-pt-idx="${idx}" value="${i.amount}" inputmode="decimal" style="width:100%;padding:5px 7px;border:1px solid var(--border);font-family:'DM Mono';font-size:12px;text-align:right;"></td>
+      <td style="text-align:center;"><button data-pt-remove="${idx}" title="Remove" style="border:none;background:none;color:#b91c1c;cursor:pointer;font-size:15px;line-height:1;">&times;</button></td>
+    </tr>`).join('');
+  wrap.innerHTML = `
+    <table class="data-table" style="font-size:12px;">
+      <thead><tr><th style="width:32%;">Item</th><th style="width:42%;">Description</th><th style="width:18%;text-align:right;">Amount ($)</th><th style="width:8%;"></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan="4" style="color:var(--muted);padding:10px;">No pass-through items. Add one below.</td></tr>'}</tbody>
+      <tfoot><tr style="background:#f1f5f9;font-weight:600;"><td>Total</td><td></td><td class="num" style="text-align:right;">${money2(total)}</td><td></td></tr></tfoot>
+    </table>
+    <div style="display:flex;gap:8px;align-items:center;margin-top:10px;">
+      <button id="pt-add" style="padding:6px 12px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;font-weight:600;">+ Add item</button>
+      <button id="pt-reset" style="padding:6px 12px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:12px;">Reset to bundle default</button>
+      <span style="font-size:11px;color:var(--muted);">${isOverride ? 'Showing saved edits (this browser).' : 'Showing bundle defaults.'}</span>
+    </div>`;
+  function commit(next){ savePassthroughOverride(currentMonth, next); renderPassthroughEditor(); renderPassthrough(); }
+  wrap.querySelectorAll('input[data-pt-field]').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const cur = effectivePassthrough().map(x => ({...x}));
+      const idx = +inp.getAttribute('data-pt-idx'); const f = inp.getAttribute('data-pt-field');
+      if (!cur[idx]) return;
+      cur[idx][f] = (f === 'amount') ? (parseFloat(inp.value.replace(/[^0-9.\-]/g,'')) || 0) : inp.value;
+      commit(cur);
+    });
+  });
+  wrap.querySelectorAll('button[data-pt-remove]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cur = effectivePassthrough().map(x => ({...x}));
+      cur.splice(+btn.getAttribute('data-pt-remove'), 1);
+      commit(cur);
+    });
+  });
+  const addBtn = wrap.querySelector('#pt-add');
+  if (addBtn) addBtn.addEventListener('click', () => {
+    const cur = effectivePassthrough().map(x => ({...x}));
+    cur.push({ name: 'New item', desc: '', amount: 0 });
+    commit(cur);
+  });
+  const resetBtn = wrap.querySelector('#pt-reset');
+  if (resetBtn) resetBtn.addEventListener('click', () => {
+    clearPassthroughOverride(currentMonth); renderPassthroughEditor(); renderPassthrough();
+  });
+}
+
 // Always invoice-style (no M1/M2/M3 references). Mirrors Funmi's invoice format
 // with an incentive overlay. The billing approach dropdown only controls the
 // scenarios cards above, not this table.
@@ -3353,7 +3453,7 @@ function scorecardBlockHtml(site) {
     const cpCls = cp >= 15 ? 'crisis' : cp >= 8 ? 'warn' : 'ok';
     const prevAdjNote = (prevAtt && prevAtt.adjusted) ? ' &middot; adj. JHB' : '';
     attritionHtml = `
-    <div class="kpi-row-label" style="margin-top:14px;">Attrition <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">&middot; ${prevL} to ${curL}${prov ? ', provisional' : ''}</span></div>
+    <div class="kpi-row-label" style="margin-top:14px;">Attrition % <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">&middot; ${prevL} to ${curL}${prov ? ', provisional' : ''}</span></div>
     <div class="kpis">
       <div class="kpi ${cpCls}"><div class="lbl">Attrition (${curL})</div><div class="val">${fmt.pct1(cp)}</div><div class="delta">${curAtt.exited} of ${curAtt.total} agents</div></div>
       <div class="kpi"><div class="lbl">Attrition (${prevL})</div><div class="val">${pp != null ? fmt.pct1(pp) : 'N/A'}</div><div class="delta">${prevAtt ? (prevAtt.exited + ' of ' + prevAtt.total + prevAdjNote) : 'prior month'}</div></div>
@@ -3416,7 +3516,7 @@ function attritionRowHtml(site, data) {
 
   if (adj) {
     return `
-      <div class="kpi-row-label">Attrition <span style="font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted)">&middot; adjusted for JHB &rarr; CPT operational transitions (43 agents)</span></div>
+      <div class="kpi-row-label">Attrition # of PCAs <span style="font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted)">&middot; adjusted for JHB &rarr; CPT operational transitions (43 agents)</span></div>
       <div class="kpis">
         <div class="kpi"><div class="lbl">Started month</div><div class="val">${att.total}</div><div class="delta">total agents touched</div></div>
         <div class="kpi"><div class="lbl">Exited (raw)</div><div class="val">${att.exited}</div><div class="delta">includes 43 JHB transitions</div></div>
@@ -3428,7 +3528,7 @@ function attritionRowHtml(site, data) {
   }
 
   return `
-    <div class="kpi-row-label">Attrition</div>
+    <div class="kpi-row-label">Attrition # of PCAs <span style="font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted)">&middot; headcount flow this month</span></div>
     <div class="kpis">
       <div class="kpi"><div class="lbl">Started month</div><div class="val">${att.total}</div><div class="delta">total agents touched</div></div>
       <div class="kpi"><div class="lbl">Exited</div><div class="val">${att.exited}</div><div class="delta">left during month</div></div>
@@ -3595,7 +3695,7 @@ function renderSitePane(site) {
         <div class="kpis">${availabilityHtml}</div>
       ` : ''}
 
-      <div class="kpi-row-label">Performance (active agents)</div>
+      <div class="kpi-row-label">Performance <span style="font-weight: 400; text-transform: none; letter-spacing: 0; color: var(--muted)">&middot; active agents</span></div>
       <div class="kpis">
         <div class="kpi ${avgAdh != null && avgAdh < 94 ? 'warn' : 'ok'}"><div class="lbl">Avg adherence</div><div class="val">${fmt.pct1(avgAdh)}</div><div class="delta">target &ge;94%</div></div>
         <div class="kpi ${avgOcc != null && avgOcc < 80 ? 'warn' : 'ok'}"><div class="lbl">Avg occupancy</div><div class="val">${fmt.pct1(avgOcc)}</div><div class="delta">target &ge;80%</div></div>
@@ -4493,6 +4593,8 @@ if (!window._internalToggle) {
     safeRun('summary-kpis', renderSummaryKPIs);
     safeRun('scorecard-summary', renderScorecardSummary);
     safeRun('scorecard-internal', renderScorecardInternalTables);
+    safeRun('passthrough', renderPassthrough);
+    safeRun('passthrough-editor', renderPassthroughEditor);
     safeRun('invoice-intro', renderInvoiceIntro);
     safeRun('charts', renderCharts);
     // Header KPI strip is driven by the bridge in build_index_minimal.py - call its hook if present
@@ -4502,11 +4604,281 @@ if (!window._internalToggle) {
   };
 }
 
+// ============== TRENDS (month-over-month, internal) ==============
+const TREND_WD = {'2026-02':20,'2026-03':22,'2026-04':22,'2026-05':20}; // billable working days (May = 21 minus Memorial Day)
+let trendMonths = null; // Set of included month keys
+
+function trendAllMonths(){
+  return (BUNDLE.available_months||[]).filter(m=>BUNDLE.months[m] && BUNDLE.months[m].site_rollup_full).slice().sort();
+}
+function trendInit(){
+  if (trendMonths) return;
+  // Default: months that actually have performance data (drops the thin Feb load,
+  // whose monthly_perf is an empty object).
+  trendMonths = new Set(trendAllMonths().filter(m=>{
+    const mp = BUNDLE.months[m].monthly_perf;
+    return mp && Object.keys(mp).length > 0;
+  }));
+}
+function wavgPerf(mp, key){
+  let num=0, den=0;
+  Object.values(mp||{}).forEach(v=>{ if(v && v[key]!=null && v.n){ num+=v[key]*v.n; den+=v.n; }});
+  return den? num/den : null;
+}
+function trendSiteAbs(month, site){
+  const sc = (BUNDLE.months['2026-05']||{}).scorecard || {};
+  const e = sc[site]; if(!e) return null;
+  if (month==='2026-05') return e.may_abs;
+  if (month==='2026-04') return e.apr_abs;
+  return null;
+}
+function trendOverallAbs(month){
+  const sc = (BUNDLE.months['2026-05']||{}).scorecard || {};
+  let num=0, den=0;
+  Object.keys(sc).forEach(s=>{
+    const e=sc[s]; const w=e.may_sched_hrs||0;
+    const v = month==='2026-05'? e.may_abs : (month==='2026-04'? e.apr_abs : null);
+    if (v!=null && w){ num+=v*w; den+=w; }
+  });
+  return den? num/den : null;
+}
+function trendAttritionKnown(month){
+  // Attrition is real if any exits were recorded, or the month has a scorecard.
+  // March currently carries an all-zero placeholder (no roster yet) -> treat as unknown.
+  const M = BUNDLE.months[month]; if(!M) return false;
+  if (M.scorecard && Object.keys(M.scorecard).length) return true;
+  const sa = M.site_attrition||{};
+  return Object.values(sa).some(v=>(v.exited||0) > 0);
+}
+function trendMetrics(month, site){ // site null => overall
+  const M = BUNDLE.months[month]; if(!M) return {};
+  const rf = M.site_rollup_full||{}; const mp = M.monthly_perf||{}; const sa = M.site_attrition||{};
+  const wd = TREND_WD[month]||null;
+  let r;
+  if (site){
+    const f = rf[site]||{}; const p = mp[site]||{};
+    const hasShrink = (f.time_off||0) > 0;
+    const att = (typeof attritionFor==='function') ? attritionFor(month, site) : null;
+    r = { sched: f.sched_hrs ?? null,
+      delivered: hasShrink ? (f.delivered_hrs ?? null) : null,
+      shrink_abs: hasShrink ? (f.time_off ?? null) : null,
+      shrink_pct: (hasShrink && f.sched_hrs) ? f.time_off/f.sched_hrs*100 : null,
+      abs_pct: trendSiteAbs(month, site),
+      adherence: p.adherence ?? null, occupancy: p.occupancy ?? null, csat: p.csat ?? null,
+      bill: f.m2_bill ?? null, agents: sa[site] ? sa[site].total : null,
+      attr_pct: (att && trendAttritionKnown(month)) ? att.pct : null };
+  } else {
+    const vals = Object.values(rf);
+    const sched = vals.reduce((s,x)=>s+(x.sched_hrs||0),0);
+    const off = vals.reduce((s,x)=>s+(x.time_off||0),0);
+    const deliv = vals.reduce((s,x)=>s+(x.delivered_hrs||0),0);
+    const bill = vals.reduce((s,x)=>s+(x.m2_bill||0),0);
+    const hasShrink = off>0;
+    let ae=0, at=0, anyAttr=false;
+    SITES.forEach(s=>{ const a=attritionFor(month,s); if(a){anyAttr=true; ae+=a.exited; at+=a.total;} });
+    const agents = Object.values(sa).reduce((s,x)=>s+(x.total||0),0) || (M.agents? M.agents.length : null);
+    r = { sched: sched||null,
+      delivered: hasShrink? deliv : null,
+      shrink_abs: hasShrink? off : null,
+      shrink_pct: (hasShrink && sched) ? off/sched*100 : null,
+      abs_pct: trendOverallAbs(month),
+      adherence: wavgPerf(mp,'adherence'), occupancy: wavgPerf(mp,'occupancy'), csat: wavgPerf(mp,'csat'),
+      bill: bill||null, agents: agents,
+      attr_pct: (anyAttr && at && trendAttritionKnown(month)) ? ae/at*100 : null };
+  }
+  r.bill_pd = (r.bill!=null && wd) ? r.bill/wd : null;
+  r.deliv_pd = (r.delivered!=null && wd) ? r.delivered/wd : null;
+  return r;
+}
+// group: 'summary' (anchor) first, 'core' (quality/retention/shrinkage) second, 'volume' (other) third.
+// Order within this array = display order within each group. # Agents anchors the top.
+const TREND_METRICS = [
+  {key:'agents', label:'# Agents', f:'int', group:'summary'},
+  {key:'bill', label:'Total bill', f:'money', group:'summary'},
+  {key:'bill_pd', label:'Bill / working day', f:'money', group:'summary'},
+  {key:'csat', label:'CSAT', f:'pct', group:'core', goodUp:true, target:v=> v>=90?'good':v>=85?'warn':'bad'},
+  {key:'adherence', label:'Adherence', f:'pct', group:'core', goodUp:true, target:v=> v>=94?'good':v>=90?'warn':'bad'},
+  {key:'attr_pct', label:'Attrition %', f:'pct', group:'core', badUp:true, target:v=> v<=5?'good':v<=10?'warn':'bad'},
+  {key:'shrink_pct', label:'Shrinkage %', f:'pct', group:'core', badUp:true, target:v=> v<=15?'good':v<=25?'warn':'bad'},
+  {key:'abs_pct', label:'Absenteeism %', f:'pct', group:'core', badUp:true, target:v=> v<=5?'good':v<=10?'warn':'bad'},
+  {key:'occupancy', label:'Occupancy', f:'pct', group:'volume', goodUp:true, target:v=> v>=80?'good':v>=70?'warn':'bad'},
+  {key:'sched', label:'Scheduled hrs', f:'int', group:'volume'},
+  {key:'delivered', label:'Delivered hrs', f:'int', group:'volume'},
+  {key:'deliv_pd', label:'Delivered / day', f:'int', group:'volume'},
+  {key:'shrink_abs', label:'Shrinkage (abs)', f:'int', group:'volume', badUp:true},
+];
+const TREND_GROUPS = [
+  {id:'summary', label:'Summary', sub:'anchor &mdash; headcount, bill, productivity'},
+  {id:'core', label:'Core metrics', sub:'quality, retention, shrinkage'},
+  {id:'volume', label:'Volume &amp; workforce / other', sub:'occupancy, hours, delivery'},
+];
+const BAND_TEXT = {good:'#16a34a', warn:'#b45309', bad:'#dc2626'};
+const BAND_OVERALL = {good:'#15803d', warn:'#a85a00', bad:'#b91c1c'};  // deeper, for the overall row
+const BAND_SITE    = {good:'#34a85a', warn:'#d68a2e', bad:'#e2655c'};  // lighter, for site rows
+function trendBand(metric, v){
+  if (v==null || isNaN(v) || !metric.target) return null;
+  return metric.target(v);
+}
+function tfmt(v, f){
+  if (v==null || isNaN(v)) return 'n/a';
+  if (f==='int') return Math.round(v).toLocaleString();
+  if (f==='pct') return (+v).toFixed(1)+'%';
+  if (f==='money') return '$'+Math.round(v).toLocaleString();
+  return String(v);
+}
+function trendMonthLabel(m){ return ((BUNDLE.month_labels||{})[m] || m).replace(' 2026',''); }
+// KPI card for current month vs prior
+function trendKpiCard(metric, cur, prior){
+  const v = cur[metric.key];
+  const p = prior ? prior[metric.key] : null;
+  // Card color = target attainment (what it looks like now); falls back to neutral
+  // for informational metrics with no target.
+  const band = trendBand(metric, v);
+  const cls = band==='good' ? 'ok' : band==='warn' ? 'warn' : band==='bad' ? 'crisis' : '';
+  let deltaHtml = '<div class="delta">&nbsp;</div>';
+  if (v!=null && p!=null && p!==0){
+    const isPct = metric.f==='pct';
+    const d = isPct ? (v - p) : ((v/p - 1)*100);
+    const dir = d > 0.05 ? 1 : (d < -0.05 ? -1 : 0);
+    const arrow = dir>0 ? '&#9650;' : (dir<0 ? '&#9660;' : '&#8226;');
+    const dtxt = isPct ? (d>0?'+':'')+d.toFixed(2)+' pp' : (d>0?'+':'')+d.toFixed(1)+'%';
+    deltaHtml = `<div class="delta">${arrow} ${dtxt} vs prior</div>`;
+  } else if (v!=null && !p){
+    deltaHtml = '<div class="delta">no prior</div>';
+  }
+  return `<div class="kpi ${cls}"><div class="lbl">${metric.label}</div><div class="val">${tfmt(v, metric.f)}</div>${deltaHtml}</div>`;
+}
+let trendCharts = {};
+function trendLineChart(id, months, series, opts){
+  if (typeof Chart === 'undefined') return;
+  const cv = document.getElementById(id); if(!cv) return;
+  if (trendCharts[id]) { trendCharts[id].destroy(); }
+  trendCharts[id] = new Chart(cv.getContext('2d'), {
+    type: opts.type || 'line',
+    data: { labels: months.map(trendMonthLabel), datasets: series },
+    options: Object.assign({
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{position:'bottom', labels:{font:{family:"'DM Sans'",size:11}, padding:10, boxWidth:12, boxHeight:12}} },
+      scales:{ x:{ticks:{font:{family:"'DM Sans'",size:11}}} },
+    }, opts.options || {})
+  });
+}
+function renderTrends(){
+  const rangeEl = document.getElementById('trend-range');
+  if (!rangeEl) return;
+  trendInit();
+  const all = trendAllMonths();
+  rangeEl.innerHTML = all.map(m=>{
+    const on = trendMonths.has(m);
+    return `<button data-trend-month="${m}" style="padding:5px 12px;border:1px solid ${on?'#0f766e':'var(--border)'};background:${on?'#e6f4f1':'#fff'};color:${on?'#0f766e':'var(--muted)'};font-weight:600;font-size:12px;cursor:pointer;border-radius:2px;">${trendMonthLabel(m)} 2026</button>`;
+  }).join('');
+  rangeEl.querySelectorAll('button[data-trend-month]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const m=b.getAttribute('data-trend-month');
+      if (trendMonths.has(m)) { if (trendMonths.size>1) trendMonths.delete(m); }
+      else trendMonths.add(m);
+      renderTrends();
+    });
+  });
+  const months = all.filter(m=>trendMonths.has(m)).sort();
+  if (!months.length) return;
+  const cur = months[months.length-1], prior = months.length>1 ? months[months.length-2] : null;
+  const curM = trendMetrics(cur, null), priorM = prior ? trendMetrics(prior, null) : null;
+
+  // ---- Core KPI cards (current vs prior)
+  document.getElementById('trend-mom-title').innerHTML =
+    `${trendMonthLabel(cur)} vs ${prior?trendMonthLabel(prior):'\u2014'} <span>&middot; summary anchor, all sites, current vs prior selected month</span>`;
+  const coreCards = TREND_METRICS.filter(m=>m.group==='summary');
+  document.getElementById('trend-kpis').innerHTML =
+    `<div class="kpis" style="grid-template-columns:repeat(${coreCards.length},1fr);">` +
+    coreCards.map(m=>trendKpiCard(m, curM, priorM)).join('') + `</div>`;
+
+  // ---- MoM cell (delta vs prior selected month)
+  function momCell(metric, a, b){
+    if (a==null || b==null || b===0) return `<td style="text-align:right;color:var(--muted);">n/a</td>`;
+    const isPct = metric.f==='pct';
+    const d = isPct ? (a-b) : ((a/b-1)*100);
+    const dir = d>0.05?1:(d<-0.05?-1:0);
+    let good=null; if(metric.goodUp)good=dir>0; if(metric.badUp)good=dir<0;
+    const color = good===true?'#16a34a':(good===false?'#dc2626':'var(--muted)');
+    const arrow = dir>0?'&#9650;':(dir<0?'&#9660;':'&#8226;');
+    const txt = isPct ? (d>0?'+':'')+d.toFixed(2)+'pp' : (d>0?'+':'')+d.toFixed(1)+'%';
+    return `<td style="text-align:right;color:${color};font-weight:600;">${arrow} ${txt}</td>`;
+  }
+  function valCell(metric, v, isOverall){
+    const band = trendBand(metric, v);
+    const palette = isOverall ? BAND_OVERALL : BAND_SITE;
+    const color = band ? palette[band] : (isOverall ? 'var(--ink-soft)' : 'var(--muted)');
+    const fw = band ? (isOverall ? '700' : '500') : (isOverall ? '600' : '400');
+    const fs = isOverall ? '13px' : '11.5px';
+    return `<td style="text-align:right;color:${color};font-weight:${fw};font-size:${fs};">${tfmt(v, metric.f)}</td>`;
+  }
+
+  // ---- Expandable metric table (metric row -> site rows)
+  const colCount = months.length + 2;
+  const head = `<tr>
+      <th style="text-align:left;width:30%;">Metric</th>
+      ${months.map(m=>`<th style="text-align:right;">${trendMonthLabel(m)}</th>`).join('')}
+      <th style="text-align:right;">MoM</th>
+    </tr>`;
+  let body = '';
+  TREND_GROUPS.forEach(g=>{
+    body += `<tr><td colspan="${colCount}" style="background:#f1f5f9;font-weight:700;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#475569;padding:7px 10px;">${g.label} <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted);">&middot; ${g.sub}</span></td></tr>`;
+    TREND_METRICS.filter(m=>m.group===g.id).forEach(metric=>{
+      const oM = months.map(m=>trendMetrics(m,null)[metric.key]);
+      const oCur = curM[metric.key], oPrior = priorM?priorM[metric.key]:null;
+      const ckey = 'trend-' + metric.key;
+      const clabel = metric.label + ' trend';
+      // overall (clickable) row: bold gray label, comment button, larger values
+      body += `<tr class="trend-metric-row" data-mkey="${metric.key}" style="cursor:pointer;border-top:1px solid #eef1f5;">
+        <td style="font-weight:700;color:#475569;position:relative;">
+          <span class="trend-caret" style="display:inline-block;width:14px;color:#94a3b8;font-size:11px;">&#9656;</span>${metric.label}
+          <button class="cmnt-btn" data-cmnt-key="${ckey}" title="Comments on ${metric.label}" onclick="event.stopPropagation();window._cmnt.open('${ckey}','${clabel}')" style="margin-left:8px;"><span class="cmnt-empty-glyph">+</span><span class="cmnt-count" style="display:none;">0</span></button>
+        </td>
+        ${oM.map(v=>valCell(metric, v, true)).join('')}
+        ${momCell(metric, oCur, oPrior)}
+      </tr>`;
+      // site sub-rows (hidden until expanded): lighter + smaller
+      SITES.forEach(site=>{
+        const sM = months.map(m=>trendMetrics(m,site)[metric.key]);
+        const sCur = trendMetrics(cur,site)[metric.key], sPrior = prior?trendMetrics(prior,site)[metric.key]:null;
+        body += `<tr class="trend-site-row trend-sub-${metric.key}" style="display:none;background:#fbfcfd;">
+          <td style="padding-left:34px;color:#94a3b8;font-weight:400;font-size:11.5px;">${site.replace('Hugo: ','')}</td>
+          ${sM.map(v=>valCell(metric, v, false)).join('')}
+          ${momCell(metric, sCur, sPrior)}
+        </tr>`;
+      });
+    });
+  });
+  document.getElementById('trend-table').innerHTML =
+    `<table class="data-table" style="font-size:12px;"><thead>${head}</thead><tbody>${body}</tbody></table>`;
+  if (window._cmnt && window._cmnt.refreshAllBadges) { try { window._cmnt.refreshAllBadges(); } catch(e){} }
+
+  // expand / collapse
+  document.querySelectorAll('.trend-metric-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const k = row.getAttribute('data-mkey');
+      const subs = document.querySelectorAll('.trend-sub-'+k);
+      const open = subs.length && subs[0].style.display !== 'none';
+      subs.forEach(s=> s.style.display = open ? 'none' : '');
+      const caret = row.querySelector('.trend-caret');
+      if (caret) caret.innerHTML = open ? '&#9656;' : '&#9662;';
+    });
+  });
+
+  document.getElementById('trend-legend').innerHTML =
+    'Targets (color-coded): CSAT &ge;90, Adherence &ge;94, Occupancy &ge;80, Attrition &le;5%, Shrinkage &le;15%, Absenteeism &le;5% = good; amber = near; red = miss. Volume metrics (hours, bill, agents) are informational. Working days: Mar 22, Apr 22, May 20 (Memorial Day).';
+}
+
 function rerenderAll() {
   safeRun('meta', renderMeta);
   safeRun('summary-kpis', renderSummaryKPIs);
   safeRun('scorecard-summary', renderScorecardSummary);
   safeRun('scorecard-internal', renderScorecardInternalTables);
+  safeRun('passthrough', renderPassthrough);
+  safeRun('passthrough-editor', renderPassthroughEditor);
+  safeRun('trends', renderTrends);
   safeRun('scenarios', renderScenarios);
   safeRun('approach-context', renderApproachContext);
   safeRun('invoice-intro', renderInvoiceIntro);
