@@ -2493,6 +2493,7 @@ function renderScorecardInternalTables() {
 }
 // ============== PASS-THROUGH INCENTIVES (data-driven + editable) ==============
 function money2(n){ return (n==null||isNaN(n)) ? '-' : '$'+Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function hrs2(n){ return (n==null||isNaN(n)) ? '-' : Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function ptStorageKey(m){ return 'gh_passthrough_' + m; }
 function getPassthroughOverride(m){
   try { const raw = localStorage.getItem(ptStorageKey(m)); return raw ? JSON.parse(raw) : null; }
@@ -2810,7 +2811,7 @@ function renderBillTableOverall(data, wrap) {
         // Rate cell: show WD / WE base rates stacked
         const hasWESplit = (d.wdHrs > 0 || d.weHrs > 0) && d.baseWeRate;
         const rateCellHtml = hasWESplit
-          ? `<div style="line-height:1.2;"><div>$${d.baseRate.toFixed(2)}<span style="color:var(--muted-soft);font-size:9px;"> WD</span></div><div style="color:var(--muted-soft);font-size:10px;">$${d.baseWeRate.toFixed(2)} WE</div></div>`
+          ? `<div style="line-height:1.2;"><div>$${d.baseRate.toFixed(2)}<span style="color:var(--muted-soft);font-size:9px;"> WD</span></div><div style="color:var(--muted-soft);font-size:10px;">$${d.baseWeRate.toFixed(3)} WE</div></div>`
           : `$${d.baseRate.toFixed(2)}`;
         // Inc rate cell: show WD / WE incentive rates stacked
         let incRateCellHtml;
@@ -2821,7 +2822,7 @@ function renderBillTableOverall(data, wrap) {
         } else if (d.incentiveRate === d.baseRate) {
           incRateCellHtml = '<span style="color:var(--muted-soft);font-size:10px;">Same</span>';
         } else if (hasWESplit) {
-          incRateCellHtml = `<div style="line-height:1.2;"><div style="color:#0d9488;font-weight:600;">$${d.incentiveRate.toFixed(2)}<span style="color:#94a3b8;font-size:9px;font-weight:400;"> WD</span></div><div style="color:#0d9488;font-size:10px;">$${d.incentiveWeRate.toFixed(2)} WE</div></div>`;
+          incRateCellHtml = `<div style="line-height:1.2;"><div style="color:#0d9488;font-weight:600;">$${d.incentiveRate.toFixed(2)}<span style="color:#94a3b8;font-size:9px;font-weight:400;"> WD</span></div><div style="color:#0d9488;font-size:10px;">$${d.incentiveWeRate.toFixed(3)} WE</div></div>`;
         } else {
           incRateCellHtml = `<span style="color:#0d9488;font-weight:600;">$${d.incentiveRate.toFixed(2)}</span>`;
         }
@@ -2853,9 +2854,9 @@ function renderBillTableOverall(data, wrap) {
             <td colspan="16" style="padding:8px 14px 12px 48px;font-size:10px;color:#475569;background:#f1f5f9 !important;">
               <div style="display:grid;grid-template-columns:140px 1fr;gap:6px 16px;align-items:start;">
                 <div style="font-family:'DM Mono',monospace;color:#475569;letter-spacing:.06em;font-weight:700;font-size:9px;">WEEKDAY</div>
-                <div style="font-size:11px;">${fmt.int(d.wdHrs)} hrs @ $${d.baseRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${fmt.money(wdBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${fmt.money(wdIncBill)}</span>` : ''}</div>
+                <div style="font-size:11px;">${hrs2(d.wdHrs)} hrs @ $${d.baseRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${money2(wdBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${money2(wdIncBill)}</span>` : ''}</div>
                 <div style="font-family:'DM Mono',monospace;color:#475569;letter-spacing:.06em;font-weight:700;font-size:9px;">WEEKEND (1.2&times;)</div>
-                <div style="font-size:11px;">${fmt.int(d.weHrs)} hrs @ $${d.baseWeRate.toFixed(2)} base = <span style="color:#0f172a;font-weight:700;">${fmt.money(weBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveWeRate.toFixed(2)} incentive = <span style="color:#0d9488;font-weight:700;">${fmt.money(weIncBill)}</span>` : ''}</div>
+                <div style="font-size:11px;">${hrs2(d.weHrs)} hrs @ $${d.baseWeRate.toFixed(3)} base = <span style="color:#0f172a;font-weight:700;">${money2(weBaseBill)}</span>${showIncBill ? `  &middot;  @ $${d.incentiveWeRate.toFixed(3)} incentive = <span style="color:#0d9488;font-weight:700;">${money2(weIncBill)}</span>` : ''}</div>
               </div>
             </td>
           </tr>`;
